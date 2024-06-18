@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Inventario</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <style>
+    .scrollable-table {
+      max-height: 280px;
+      overflow-y: auto;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</head>
+<body class="bg-gray-800">
+  <header class="bg-gray-900 text-white px-4 py-3">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-lg font-bold">Gestión de Inventario</h1>
+      <nav>
+        <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl text-white font-bold mb-6">Gestión de Inventario</h1>
+
+    <!-- Datos de Productos -->
+    <div class="bg-white mb-8 rounded-xl">
+      <h2 class="text-xl font-bold mb-4">Datos de Productos</h2>
+      <div class="flex items-center mb-4">
+        <input class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1 mr-4" type="text" id="buscar-producto" placeholder="Buscar producto..." />
+        <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white hover:bg-gray-800 h-9 rounded-md px-3" onclick="buscarProducto()">Buscar</button>
+        <select id="filtrar-categoria" class="ml-4 p-2 border rounded-md" onchange="filtrarPorCategoria()">
+          <option value="">Todas las Categorías</option>
+        </select>
+      </div>
+      <div class="border rounded-lg overflow-x-auto scrollable-table">
+        <table class="w-full table-auto" id="productos-table">
+          <thead>
+            <tr class="bg-gray-200 dark:bg-gray-800">
+              <th class="px-4 py-2 text-left">Nombre</th>
+              <th class="px-4 py-2 text-left">Descripción</th>
+              <th class="px-4 py-2 text-left">Precio</th>
+              <th class="px-4 py-2 text-left">Stock</th>
+              <th class="px-4 py-2 text-left">Categoría</th>
+              <th class="px-4 py-2 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Productos Aparecen dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4">
+        <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white hover:bg-gray-800 h-9 rounded-md px-3" onclick="mostrarFormularioAgregar()">Agregar Producto</button>
+      </div>
+ 
+    </div>
+
+    <!-- Formulario de Producto -->
+    <div id="formulario-producto" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+      <div class="bg-white p-8 rounded-lg">
+        <h2 id="formulario-titulo" class="text-xl font-bold mb-4">Agregar Producto</h2>
+        <input type="hidden" id="producto-id">
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2">Nombre</label>
+          <input id="producto-nombre" class="w-full px-3 py-2 border rounded-md" type="text">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2">Descripción</label>
+          <input id="producto-descripcion" class="w-full px-3 py-2 border rounded-md" type="text">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2">Precio</label>
+          <input id="producto-precio" class="w-full px-3 py-2 border rounded-md" type="number">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2">Stock</label>
+          <input id="producto-stock" class="w-full px-3 py-2 border rounded-md" type="number">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2">Categoría</label>
+          <input id="producto-categoria" class="w-full px-3 py-2 border rounded-md" type="text">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-2">Stock Mínimo</label>
+          <input id="producto-stock-minimo" class="w-full px-3 py-2 border rounded-md" type="number">
+        </div>
+        <div class="flex justify-end">
+          <button class="bg-red-500 text-white px-4 py-2 rounded-md mr-2" onclick="cerrarFormulario()">Cancelar</button>
+          <button class="bg-green-500 text-white px-4 py-2 rounded-md" onclick="guardarProducto()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Registros de Salida -->
+    <div class="bg-white mb-8 rounded-xl">
+      <h2 class="text-xl font-bold mb-4">Registros de Salida</h2>
+      <div class="border rounded-lg overflow-x-auto scrollable-table">
+        <table class="w-full table-auto" id="transacciones-table">
+          <thead>
+            <tr class="bg-gray-200 dark:bg-gray-800">
+              <th class="px-4 py-2 text-left">Fecha</th>
+              <th class="px-4 py-2 text-left">Producto</th>
+              <th class="px-4 py-2 text-left">Cantidad</th>
+              <th class="px-4 py-2 text-left">Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Transacciones Aparecen dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/inventario.js"></script>
+</body>
+</html>

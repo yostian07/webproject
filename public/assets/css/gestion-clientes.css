@@ -1,0 +1,27 @@
+@keyframes slideIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.animate-slide-in {
+    animation: slideIn 0.2s ease-in-out;
+    opacity: 0;
+    transform: scale(0.1);
+}
+/* dashboard.css */
+.table-container {
+    max-height: 24rem; /* Controla la altura máxima del contenedor */
+    overflow-y: auto; /* Permite el desplazamiento vertical */
+}
+
+.table-container thead th {
+    position: sticky;
+    top: 0;
+    background: inherit; /* Mantiene el color de fondo del encabezado */
+    z-index: 10; /* Asegura que el encabezado esté por encima del cuerpo de la tabla */
+}

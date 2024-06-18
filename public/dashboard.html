@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TecShop</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body class="flex flex-col min-h-screen">
+  
+    <header class="bg-gray-900 text-white px-4 lg:px-6 py-3 flex items-center justify-between">
+        <a href="#" class="flex items-center">
+            <img src="images/logo.png" alt="Logo" class="h-8 mr-3">
+            <span class="animated-text">TecShop</span>
+        </a>
+        <nav class="flex gap-4">
+            <a href="Gestion Clientes.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Clientes</a>
+            <a href="inventario.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Productos</a>
+            <a href="ventas.html" class="text-sm font-medium hover:text-gray-300 animated-link">Ventas y Facturación</a>
+            <a href="gestion-proveedores.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Proveedores</a>
+            <a href="reportes.html" class="text-sm font-medium hover:text-gray-300 animated-link">Reportes</a>
+            <a href="gestion-envios.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Envíos</a>
+            <a href="#" id="logoutBtn" class="text-sm font-medium hover:text-gray-300 animated-link">Logout</a>
+            <div class="notification">
+                <a href="#" class="text-gray-300 hover:text-gray-100" id="notificaciones-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405C18.785 14.21 18 12.686 18 11V7a6 6 0 10-12 0v4c0 1.686-.785 3.21-1.595 4.595L3 17h5m4 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="badge" id="notificaciones-badge" style="display: none;">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+   
+    <main class="flex-grow welcome-background p-6">
+        <div class="max-w-6xl mx-auto text-center py-20">
+            <h1 class="text-white text-4xl font-bold">Bienvenido a tu Dashboard</h1>
+            <p class="text-white mt-3">Gestiona tu tienda de videojuegos eficientemente.</p>
+        </div>
+        <div class="chart-container">
+            <div class="bg-gray-900 p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl text-white mb-4">Ventas Registradas</h2>
+                <canvas id="ventasChart" class="chart-small"></canvas>
+            </div>
+            <div class="bg-gray-900 p-6 rounded-xl shadow-md mb-6 relative">
+                <div class="flex justify-between items-start w-full mb-4">
+                    <h2 class="text-2xl text-white font-semibold">Productos Más Vendidos</h2>
+                </div>
+                <canvas id="productosChart" class="chart-small"></canvas>
+                <div class="flex justify-end mt-4">
+                    <button id="downloadCSV" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">Descargar CSV</button>
+                </div>
+            </div>
+            
+    </main>
+
+    <div id="notificaciones-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="modal-close">&times;</span>
+            <h2>Productos con stock bajo</h2>
+            <ul id="notificaciones-list"></ul>
+        </div>
+    </div>
+    
+
+    <script src="scripts/dashboard.js"></script>
+</body>
+</html>
