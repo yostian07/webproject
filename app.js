@@ -19,8 +19,17 @@ const PORT = process.env.PORT || 3000;
 const secret = process.env.JWT_SECRET || 'your_secret_key';
 const redisClient = redis.createClient();
 
+const dbConfig = {
+  user: process.env.DB_USER || 'yosti',
+  password: process.env.DB_PASSWORD || '123',
+  connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST || 'localhost'})(PORT=${process.env.DB_PORT || 1521}))(CONNECT_DATA=(SERVICE_NAME=${process.env.DB_SERVICE || 'ORCLD'})))`
+};
 
-app.use(bodyParser.json());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://57418ktj-3000.use2.devtunnels.ms',
+  'https://webprojectapp-2d5aacce28e6.herokuapp.com'
+];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -35,24 +44,11 @@ app.use(cors({
   }
 }));
 
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public/comprobantes', express.static(path.join(__dirname, 'public', 'comprobantes')));
 app.use(cookieParser());
 const csrfProtection = csrf({ cookie: true });
-
-const dbConfig = {
-  user: 'YOSTI',
-  password: '123',
-  connectString: process.env.DATABASE_URL || 'localhost:1521/ORCLD'
-};
-
-
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://57418ktj-3000.use2.devtunnels.ms',
-  'https://webprojectapp-2d5aacce28e6.herokuapp.com'
-];
-
 
 if (cluster.isMaster) {
   const numCPUs = os.cpus().length;
