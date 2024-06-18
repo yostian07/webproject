@@ -43,8 +43,9 @@ const csrfProtection = csrf({ cookie: true });
 const dbConfig = {
   user: 'YOSTI',
   password: '123',
-  connectString: 'localhost:1521/ORCLD'
+  connectString: process.env.DATABASE_URL || 'localhost:1521/ORCLD'
 };
+
 
 const allowedOrigins = [
   'http://localhost:3000',
