@@ -4,8 +4,17 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
+    // Definir la URL base condicionalmente
+    let apiBaseUrl;
+    if (window.location.hostname === 'localhost') {
+        apiBaseUrl = 'http://localhost:3000';
+    } else {
+        // Asume que cualquier otro hostname es tu aplicación desplegada en Heroku
+        apiBaseUrl = `https://${window.location.hostname}`;
+    }
+
     try {
-        const response = await fetch('http://localhost:3000/login', {
+        const response = await fetch(`${apiBaseUrl}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
