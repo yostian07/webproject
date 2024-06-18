@@ -18,21 +18,22 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const secret = process.env.JWT_SECRET || 'your_secret_key';
 const redisClient = redis.createClient();
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'https://57418ktj-3000.use2.devtunnels.ms'];
+
+
 app.use(bodyParser.json());
 
 app.use(cors({
   origin: function (origin, callback) {
-      // Permitir solicitudes sin origen (como curl)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-          const msg = 'El CORS policy no permite acceso desde el origen especificado.';
-          return callback(new Error(msg), false);
-      }
-      return callback(null, true);
+    console.log('Origin:', origin); // Log the origin for debugging
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'El CORS policy no permite acceso desde el origen especificado.';
+      console.error(msg);
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
   }
 }));
-
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public/comprobantes', express.static(path.join(__dirname, 'public', 'comprobantes')));
@@ -44,6 +45,13 @@ const dbConfig = {
   password: '123',
   connectString: 'localhost:1521/ORCLD'
 };
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://57418ktj-3000.use2.devtunnels.ms',
+  'https://webprojectapp-2d5aacce28e6.herokuapp.com'
+];
+
 
 if (cluster.isMaster) {
   const numCPUs = os.cpus().length;

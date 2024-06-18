@@ -28,7 +28,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         if (result.success) {
             // Guarda el token en el localStorage
-            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('authToken', result.accessToken); // Asegúrate de que el nombre coincide con el que envías desde el servidor
             window.location.href = "dashboard.html";
         } else {
             alert(result.message);
