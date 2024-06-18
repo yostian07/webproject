@@ -18,8 +18,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 const secret = process.env.JWT_SECRET || 'your_secret_key';
 const redisClient = redis.createClient();
-const allowedOrigins = ['http://localhost:3000', 'https://57418ktj-3000.use2.devtunnels.ms'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'https://57418ktj-3000.use2.devtunnels.ms'];
 app.use(bodyParser.json());
+
 app.use(cors({
   origin: function (origin, callback) {
       // Permitir solicitudes sin origen (como curl)
