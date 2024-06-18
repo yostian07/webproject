@@ -4,10 +4,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    const serverUrl = process.env.SERVER_URL || 'http://localhost:3000';
-
     try {
-        const response = await fetch(`${serverUrl}/login`, {
+        const response = await fetch('http://localhost:3000/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

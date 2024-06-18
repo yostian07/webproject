@@ -15,7 +15,7 @@ const cluster = require('cluster');
 const os = require('os');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 const secret = process.env.JWT_SECRET || 'your_secret_key';
 const redisClient = redis.createClient();
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'https://57418ktj-3000.use2.devtunnels.ms'];

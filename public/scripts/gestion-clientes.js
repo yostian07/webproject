@@ -1,6 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Definir la URL base condicionalmente
-    const apiBaseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://57418ktj-3000.use2.devtunnels.ms';
+    let apiBaseUrl;
+    if (window.location.hostname === 'localhost') {
+        apiBaseUrl = 'http://localhost:3000';
+    } else if (window.location.hostname === '57418ktj-3000.use2.devtunnels.ms') {
+        apiBaseUrl = 'https://57418ktj-3000.use2.devtunnels.ms';
+    } else {
+        // Asume que cualquier otro hostname es tu aplicación desplegada en Heroku
+        apiBaseUrl = `https://${window.location.hostname}`;
+    }
 
     fetchClientes();
 
