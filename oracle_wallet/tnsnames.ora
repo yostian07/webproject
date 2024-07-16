@@ -1,0 +1,12 @@
+dbtienda_high = 
+  (DESCRIPTION =
+    (RETRY_COUNT = 20)
+    (RETRY_DELAY = 3)
+    (ADDRESS = (PROTOCOL = tcps)(HOST = adb.sa-bogota-1.oraclecloud.com)(PORT = 1522))
+    (CONNECT_DATA =
+      (SERVICE_NAME = ge1e843fdbdd04c_dbtienda_high.adb.oraclecloud.com)
+    )
+    (SECURITY =
+      (SSL_SERVER_CERT_DN = "CN=adb.sa-bogota-1.oraclecloud.com, O=Oracle Corporation, L=Redwood City, ST=California, C=US")
+    )
+  )

@@ -4,17 +4,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    // Definir la URL base condicionalmente
-    let apiBaseUrl;
-    if (window.location.hostname === 'localhost') {
-        apiBaseUrl = 'http://localhost:3000';
-    } else {
-        // Asume que cualquier otro hostname es tu aplicación desplegada en Heroku
-        apiBaseUrl = `https://${window.location.hostname}`;
-    }
-
     try {
-        const response = await fetch(`${apiBaseUrl}/login`, {
+        const response = await fetch('http://localhost:3000/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -28,7 +19,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         if (result.success) {
             // Guarda el token en el localStorage
-            localStorage.setItem('authToken', result.accessToken); // Asegúrate de que el nombre coincide con el que envías desde el servidor
+            localStorage.setItem('authToken', result.accessToken); // Cambiado a result.accessToken
             window.location.href = "dashboard.html";
         } else {
             alert(result.message);

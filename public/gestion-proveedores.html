@@ -4,91 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Proveedores</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        /* Definir la animación */
-        @keyframes slideIn {
-            from {
-                transform: scale(0);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-    
-        /* Clase para aplicar la animación */
-        .animate-slide-in {
-            animation: slideIn 0.3s ease-in-out;
-        }
-      </style>
+    <script src="scripts/auth.js"></script>
+    <link href="./output.css" rel="stylesheet">
 </head>
 <body class="bg-gray-800">
     <header class="bg-gray-900 text-white px-4 py-3">
         <div class="container mx-auto flex justify-between items-center animate-slide-in">
-            <h1 class="text-lg text-white font-bold">Gestión de Proveedores</h1>
+            <h1 class="text-lg text-white font-bold">Gestión de proveedores</h1>
             <nav>
-                <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al Dashboard</a>
+                <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al dashboard</a>
             </nav>
         </div>
     </header>
     <div class="container mx-auto px-4 py-8 animate-slide-in">
         <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl text-white font-bold">Proveedores</h1>
+            <h1 class="text-2xl text-white font-bold">Lista de proveedores</h1>
             <div class="flex gap-2 text-white">
-                <button id="add-provider-btn" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                    Agregar Proveedor
+                <button id="add-provider-btn" class="transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 border-gray-400 text-white bg-gray-900 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                    Agregar proveedor
                 </button>
             </div>
         </div>
-        <div id="add-provider-form" class="hidden mb-6 bg-white p-4 rounded-xl shadow">
-            <h2 id="provider-form-title" class="text-xl font-bold mb-4">Agregar Proveedor</h2>
-            <form id="provider-form">
-                <input type="hidden" id="proveedor_id" name="proveedor_id">
-                <div class="mb-4">
-                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
-                    <input type="text" id="nombre" name="nombre" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="numero_ruc" class="block text-sm font-medium text-gray-700">Número RUC</label>
-                    <input type="text" id="numero_ruc" name="numero_ruc" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
-                    <input type="text" id="telefono" name="telefono" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="correo_electronico" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                    <input type="email" id="correo_electronico" name="correo_electronico" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="tipo_proveedor" class="block text-sm font-medium text-gray-700">Tipo de Proveedor</label>
-                    <input type="text" id="tipo_proveedor" name="tipo_proveedor" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
-                    <input type="text" id="direccion" name="direccion" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="productos" class="block text-sm font-medium text-gray-700">Productos (separados por comas)</label>
-                    <input type="text" id="productos" name="productos" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Guardar</button>
-                </div>
-            </form>
+        
+        <!-- Modal -->
+        <div id="add-provider-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
+                <button id="close-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+                <h2 id="provider-form-title" class="text-xl font-bold mb-4">Agregar Proveedor</h2>
+                <form id="provider-form">
+                    <input type="hidden" id="proveedor_id" name="proveedor_id">
+                    <div class="mb-4">
+                        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="numero_ruc" class="block text-sm font-medium text-gray-700">Número RUC</label>
+                        <input type="text" id="numero_ruc" name="numero_ruc" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                        <input type="text" id="telefono" name="telefono" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="correo_electronico" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                        <input type="email" id="correo_electronico" name="correo_electronico" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="tipo_proveedor" class="block text-sm font-medium text-gray-700">Tipo de proveedor</label>
+                        <input type="text" id="tipo_proveedor" name="tipo_proveedor" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+                        <input type="text" id="direccion" name="direccion" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="productos" class="block text-sm font-medium text-gray-700">Productos (separados por comas)</label>
+                        <input type="text" id="productos" name="productos" class="bg-gray-200 mt-1 block w-full shadow-sm sm:text-sm border-gray-400 rounded-md" required>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-400 dark:focus:ring-gray-700 dark:border-gray-700 transition duration-300 ease-in-out">Guardar</button>
+                    </div>
+                </form>
+            </div>
         </div>
         
-        <!-- Aquí agregamos la nueva sección de detalles del proveedor -->
+        <!-- Detalles del proveedor -->
         <div id="provider-details" class="hidden mb-6 bg-white p-4 rounded-lg shadow">
-            <h2 class="text-xl font-bold mb-4">Detalles del Proveedor</h2>
+            <h2 class="text-xl font-bold mb-4">Detalles del proveedor</h2>
             <div id="provider-details-content"></div>
             <button id="close-details-btn" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md">Cerrar</button>
         </div>
 
-        <div class="bg-white dark:bg-gray-950 rounded-lg shadow-sm mb-6">
+        <!-- Tabla de proveedores -->
+        <div class="bg-gray-300 dark:bg-gray-400 rounded-lg shadow-sm mb-6">
             <div class="px-6 py-4 border-b dark:border-gray-800">
                 <div class="flex items-center gap-4">
                     <div class="relative flex-1">
@@ -98,13 +88,13 @@
                         </svg>
                         <input id="search-input" class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 w-full" type="text" placeholder="Buscar proveedores..." value="" />
                     </div>
-                    <button id="search-btn" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">Buscar</button>
+                    <button id="search-btn" class="text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-400 dark:focus:ring-gray-700 dark:border-gray-700 transition duration-300 ease-in-out">Buscar</button>
                 </div>
             </div>
-            <div class="relative w-full rounded-xl overflow-auto">
+            <div class="relative w-full rounded-xl bg-gray-200 overflow-auto">
                 <table class="w-full caption-bottom text-sm">
-                    <thead class="[&amp;_tr]:border-b">
-                        <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                    <thead class="bg-gray-200 [&amp;_tr]:border-b">
+                        <tr class="border-b bg-gray-200 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0 cursor-pointer">Nombre<span class="ml-1">↑</span></th>
                             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0 cursor-pointer">Contacto</th>
                             <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0">Productos</th>

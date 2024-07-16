@@ -1,29 +1,38 @@
 document.addEventListener('DOMContentLoaded', function() {
-    let apiBaseUrl;
-    if (window.location.hostname === 'localhost') {
-        apiBaseUrl = 'http://localhost:3000';
-    } else if (window.location.hostname === '57418ktj-3000.use2.devtunnels.ms') {
-        apiBaseUrl = 'https://57418ktj-3000.use2.devtunnels.ms';
-    } else {
-        // Asume que cualquier otro hostname es tu aplicación desplegada en Heroku
-        apiBaseUrl = `https://${window.location.hostname}`;
-    }
+    const apiBaseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://57418ktj-3000.use2.devtunnels.ms';
 
     fetchClientes();
 
     const formCliente = document.getElementById('form-cliente');
     const formBuscar = document.getElementById('form-buscar');
+    const searchInput = formBuscar.querySelector('input[name="search"]');
     const agregarBtn = document.getElementById('agregar-btn');
     const guardarBtn = document.getElementById('guardar-btn');
+
+    const searchSpinner = document.getElementById('search-spinner');
+
+    if (formBuscar) {
+        formBuscar.addEventListener('submit', function(e) {
+            e.preventDefault();
+            searchSpinner.classList.remove('hidden');
+            setTimeout(() => {
+                searchSpinner.classList.add('hidden');
+            }, 1000);
+        });
+    }
 
     if (formCliente) {
         formCliente.addEventListener('submit', function(e) {
             e.preventDefault();
-            procesarFormulario();
+            if (validarFormulario()) {
+                procesarFormulario();
+            }
         });
 
         guardarBtn.addEventListener('click', function() {
-            procesarFormulario();
+            if (validarFormulario()) {
+                procesarFormulario();
+            }
         });
     }
 
@@ -34,7 +43,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Función para procesar el formulario
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            buscarClientesEnTiempoReal(this.value);
+        });
+    }
+
+    function validarFormulario() {
+        const nombre = document.getElementById('nombre').value;
+        const documentoIdentidad = document.getElementById('documento_identidad').value;
+        const correoElectronico = document.getElementById('correo_electronico').value;
+        const telefono = document.getElementById('telefono').value;
+
+        const nombrePattern = /^[A-Za-z\s]+$/;
+        const documentoIdentidadPattern = /^\d{9}$/;
+        const telefonoPattern = /^\d+$/;
+
+        if (!nombrePattern.test(nombre)) {
+            Swal.fire('Error', 'El nombre no debe contener números.', 'error');
+            return false;
+        }
+
+        if (!documentoIdentidadPattern.test(documentoIdentidad)) {
+            Swal.fire('Error', 'El documento de identidad debe tener 9 dígitos.', 'error');
+            return false;
+        }
+
+        if (!telefonoPattern.test(telefono)) {
+            Swal.fire('Error', 'El teléfono solo debe contener números.', 'error');
+            return false;
+        }
+
+        if (!correoElectronico.includes('@')) {
+            Swal.fire('Error', 'El correo electrónico no es válido.', 'error');
+            return false;
+        }
+
+        return true;
+    }
+
     function procesarFormulario() {
         const formData = new FormData(formCliente);
         const data = {};
@@ -62,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Función para obtener y mostrar clientes
     function fetchClientes() {
         fetch(`${apiBaseUrl}/clientes`)
             .then(response => response.json())
@@ -76,35 +122,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error al cargar clientes:', error));
     }
 
-    // Función para buscar clientes
-    function buscarClientes() {
-        const searchValue = formBuscar.querySelector('input[name="search"]').value;
+    function buscarClientesEnTiempoReal(searchValue) {
         fetch(`${apiBaseUrl}/clientes?search=${encodeURIComponent(searchValue)}`)
             .then(response => response.json())
             .then(data => {
-                if (data.length === 0) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Cliente no encontrado',
-                        text: 'No se ha encontrado ningún cliente con los criterios de búsqueda proporcionados.',
-                        confirmButtonText: 'Aceptar'
-                    });
-                } else {
-                    mostrarClientes(data);
-                }
+                mostrarClientes(data);
             })
-            .catch(error => {
-                console.error('Error al buscar clientes:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al realizar la búsqueda de clientes. Por favor, inténtalo nuevamente.',
-                    confirmButtonText: 'Aceptar'
-                });
-            });
+            .catch(error => console.error('Error al buscar clientes:', error));
     }
 
-    // Función para mostrar los clientes en la tabla con animación
     function mostrarClientes(clientes) {
         const tbody = document.querySelector('#clientes-table tbody');
         if (tbody) {
@@ -121,9 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="border-b p-4">${cliente.direccion}</td>
                     <td class="border-b p-4">${cliente.estado}</td>
                     <td class="border-b p-4">
-                        <button type="button" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="editarCliente(${cliente.id})">Editar</button>
-<button type="button" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="eliminarCliente(${cliente.id})">Eliminar</button>
-
+                        <button type="button" class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="editarCliente(${cliente.id})">Editar</button>
+                        <button type="button" class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="eliminarCliente(${cliente.id})">Eliminar</button>
                     </td>
                 `;
                 tbody.appendChild(fila);

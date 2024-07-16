@@ -1,12 +1,24 @@
 document.getElementById('toggleFormButton').addEventListener('click', function() {
-  document.getElementById('shipmentForm').classList.toggle('hidden');
-  document.getElementById('searchSection').classList.toggle('hidden');
+  const modal = document.getElementById('shipmentFormModal');
+  modal.classList.remove('pointer-events-none', 'opacity-0');
+  modal.classList.add('opacity-100');
+  document.getElementById('searchSection').classList.add('hidden');
   resetForm();
 });
 
-document.getElementById('cancelEditButton').addEventListener('click', function() {
+document.getElementById('closeFormModal').addEventListener('click', function() {
+  const modal = document.getElementById('shipmentFormModal');
+  modal.classList.add('pointer-events-none', 'opacity-0');
+  modal.classList.remove('opacity-100');
   resetForm();
-  document.getElementById('shipmentForm').classList.add('hidden');
+  document.getElementById('searchSection').classList.remove('hidden');
+});
+
+document.getElementById('cancelEditButton').addEventListener('click', function() {
+  const modal = document.getElementById('shipmentFormModal');
+  modal.classList.add('pointer-events-none', 'opacity-0');
+  modal.classList.remove('opacity-100');
+  resetForm();
   document.getElementById('searchSection').classList.remove('hidden');
 });
 
@@ -17,12 +29,16 @@ document.getElementById('cancelSearchButton').addEventListener('click', function
   document.getElementById('searchSection').classList.remove('hidden');
 });
 
-document.getElementById('closeReportButton').addEventListener('click', function() {
-  document.getElementById('shipmentReportModal').style.display = 'none';
+document.getElementById('closeDetailButton').addEventListener('click', function() {
+  const modal = document.getElementById('shipmentDetailModal');
+  modal.classList.add('pointer-events-none', 'opacity-0');
+  modal.classList.remove('opacity-100');
 });
 
-document.getElementById('closeReportModal').addEventListener('click', function() {
-  document.getElementById('shipmentReportModal').style.display = 'none';
+document.getElementById('closeDetailModal').addEventListener('click', function() {
+  const modal = document.getElementById('shipmentDetailModal');
+  modal.classList.add('pointer-events-none', 'opacity-0');
+  modal.classList.remove('opacity-100');
 });
 
 function resetForm() {
@@ -33,6 +49,7 @@ function resetForm() {
   document.getElementById('cliente_nombre').value = '';
   document.getElementById('cliente_direccion').value = '';
   document.getElementById('cliente_telefono').value = '';
+  document.getElementById('cliente_correo').value = '';
   document.getElementById('direccion_destino').value = '';
   document.getElementById('costo_envio').value = '';
   document.getElementById('estado_envio').value = 'pendiente';
@@ -49,6 +66,7 @@ document.getElementById('loadClient').addEventListener('click', async function()
     document.getElementById('cliente_nombre').value = client.NOMBRE;
     document.getElementById('cliente_direccion').value = client.DIRECCION;
     document.getElementById('cliente_telefono').value = client.TELEFONO;
+    document.getElementById('cliente_correo').value = client.CORREO_ELECTRONICO;
 
     document.getElementById('clientForm').classList.remove('hidden');
   } catch (error) {
@@ -78,83 +96,87 @@ document.getElementById('addProductButton').addEventListener('click', function()
 });
 
 document.getElementById('shipmentForm').addEventListener('submit', async function(event) {
-event.preventDefault();
+  event.preventDefault();
 
-const envioId = document.getElementById('envioId').value;
-const cliente_documento = document.getElementById('cliente_documento').value;
-const cliente_nombre = document.getElementById('cliente_nombre').value;
-const cliente_direccion = document.getElementById('cliente_direccion').value;
-const cliente_telefono = document.getElementById('cliente_telefono').value;
-const direccion_destino = document.getElementById('direccion_destino').value;
-const costo_envio = parseFloat(document.getElementById('costo_envio').value);
-const estado_envio = document.getElementById('estado_envio').value;
+  const envioId = document.getElementById('envioId').value;
+  const cliente_documento = document.getElementById('cliente_documento').value;
+  const cliente_nombre = document.getElementById('cliente_nombre').value;
+  const cliente_direccion = document.getElementById('cliente_direccion').value;
+  const cliente_telefono = document.getElementById('cliente_telefono').value;
+  const cliente_correo = document.getElementById('cliente_correo').value;
+  const direccion_destino = document.getElementById('direccion_destino').value;
+  const costo_envio = parseFloat(document.getElementById('costo_envio').value);
+  const estado_envio = document.getElementById('estado_envio').value;
 
-const productos = Array.from(document.getElementsByName('producto_id[]')).map((select, index) => {
-return {
-  producto_id: parseInt(select.value),
-  cantidad: parseInt(document.getElementsByName('cantidad[]')[index].value)
-};
-});
-
-// Validación de datos
-if (isNaN(costo_envio)) {
-Swal.fire({
-  icon: 'error',
-  title: 'Error',
-  text: 'El costo de envío debe ser un número válido',
-});
-return;
-}
-for (const producto of productos) {
-if (isNaN(producto.producto_id) || isNaN(producto.cantidad)) {
-  Swal.fire({
-    icon: 'error',
-    title: 'Error',
-    text: 'La cantidad y el ID del producto deben ser números válidos',
+  const productos = Array.from(document.getElementsByName('producto_id[]')).map((select, index) => {
+    return {
+      producto_id: parseInt(select.value),
+      cantidad: parseInt(document.getElementsByName('cantidad[]')[index].value)
+    };
   });
-  return;
-}
-}
 
-try {
-const data = {
-  cliente_documento,
-  cliente_nombre,
-  cliente_direccion,
-  cliente_telefono,
-  direccion_destino,
-  costo_envio,
-  estado_envio,
-  productos
-};
+  // Validación de datos
+  if (isNaN(costo_envio)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'El costo de envío debe ser un número válido',
+    });
+    return;
+  }
+  for (const producto of productos) {
+    if (isNaN(producto.producto_id) || isNaN(producto.cantidad)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'La cantidad y el ID del producto deben ser números válidos',
+      });
+      return;
+    }
+  }
 
-if (envioId) {
-  await axios.put(`/shipments/${envioId}`, data);
-  Swal.fire({
-    icon: 'success',
-    title: 'Éxito',
-    text: 'Envío actualizado exitosamente',
-  });
-} else {
-  await axios.post('/register-shipment', data);
-  Swal.fire({
-    icon: 'success',
-    title: 'Éxito',
-    text: 'Envío registrado exitosamente',
-  });
-}
-resetForm();
-document.getElementById('shipmentForm').classList.add('hidden');
-document.getElementById('searchSection').classList.remove('hidden');
-loadShipments();
-} catch (error) {
-console.error('Error registrando el envío:', error);
-Swal.fire({
-  icon: 'error',
-  title: 'Error',
-  text: 'Error registrando el envío',
-});
-}
+  try {
+    const data = {
+      cliente_documento,
+      cliente_nombre,
+      cliente_direccion,
+      cliente_telefono,
+      cliente_correo,
+      direccion_destino,
+      costo_envio,
+      estado_envio,
+      productos
+    };
+
+    if (envioId) {
+      await axios.put(`/shipments/${envioId}`, data);
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Envío actualizado exitosamente',
+      });
+    } else {
+      await axios.post('/register-shipment', data);
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Envío registrado exitosamente',
+      });
+    }
+    resetForm();
+    const modal = document.getElementById('shipmentFormModal');
+    modal.classList.add('pointer-events-none', 'opacity-0');
+    modal.classList.remove('opacity-100');
+    document.getElementById('searchSection').classList.remove('hidden');
+    loadShipments();
+  } catch (error) {
+    console.error('Error registrando el envío:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Error registrando el envío',
+    });
+  }
 });
 
 async function loadProducts() {
@@ -184,28 +206,68 @@ async function loadShipments() {
   try {
     const response = await axios.get('/shipments');
     const shipments = response.data;
-    const shipmentsTableBody = document.getElementById('shipmentsTableBody');
-    shipmentsTableBody.innerHTML = '';
+    const pendingShipmentsTableBody = document.getElementById('pendingShipmentsTableBody');
+    const completedShipmentsTableBody = document.getElementById('completedShipmentsTableBody');
+    pendingShipmentsTableBody.innerHTML = '';
+    completedShipmentsTableBody.innerHTML = '';
 
     shipments.forEach(shipment => {
-      const total = shipment.PRECIO_TOTAL ? parseFloat(shipment.PRECIO_TOTAL) : parseFloat(shipment.COSTO_ENVIO);
-
       const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="border px-4 py-2">${shipment.ENVIO_ID}</td>
-        <td class="border px-4 py-2">${shipment.CLIENTE_DOCUMENTO}</td>
-        <td class="border px-4 py-2">${shipment.CLIENTE_NOMBRE}</td>
-        <td class="border px-4 py-2">${shipment.CLIENTE_DIRECCION}</td>
-        <td class="border px-4 py-2">${shipment.CLIENTE_TELEFONO}</td>
-        <td class="border px-4 py-2">${shipment.DIRECCION_DESTINO}</td>
-        <td class="border px-4 py-2">${shipment.COSTO_ENVIO}</td>
-        <td class="border px-4 py-2">${shipment.ESTADO_ENVIO}</td>
-        <td class="border px-4 py-2">${total}</td>
-        <td class="border px-4 py-2">
-          <button class="bg-blue-500 text-white py-1 px-2 rounded edit-button" data-id="${shipment.ENVIO_ID}">Editar</button>
-        </td>
-      `;
-      shipmentsTableBody.appendChild(row);
+      if (shipment.ESTADO_ENVIO === 'pendiente') {
+        row.innerHTML = `
+          <td class="border px-4 py-2">${shipment.ENVIO_ID}</td>
+          <td class="border px-4 py-2">${shipment.CLIENTE_NOMBRE}</td>
+          <td class="border px-4 py-2 flex space-x-2">
+            <button class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 view-button" data-id="${shipment.ENVIO_ID}">Ver</button>
+            <button class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 edit-button" data-id="${shipment.ENVIO_ID}">Editar</button>
+            <button class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 mark-done-button" data-id="${shipment.ENVIO_ID}">Hecho</button>
+          </td>
+        `;
+        pendingShipmentsTableBody.appendChild(row);
+      } else {
+        row.innerHTML = `
+          <td class="border px-4 py-2">${shipment.ENVIO_ID}</td>
+          <td class="border px-4 py-2">${shipment.CLIENTE_NOMBRE}</td>
+          <td class="border px-4 py-2 flex space-x-2">
+            <button class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 view-button" data-id="${shipment.ENVIO_ID}">Ver</button>
+          </td>
+        `;
+        completedShipmentsTableBody.appendChild(row);
+      }
+    });
+
+    document.querySelectorAll('.view-button').forEach(button => {
+      button.addEventListener('click', async function() {
+        const envioId = this.getAttribute('data-id');
+        try {
+          const response = await axios.get(`/shipments/${envioId}`);
+          const shipment = response.data;
+
+          const totalEnvio = shipment.COSTO_ENVIO + shipment.PRODUCTOS.reduce((total, product) => total + product.PRECIO * product.CANTIDAD, 0);
+
+          document.getElementById('detailEnvioId').innerText = shipment.ENVIO_ID;
+          document.getElementById('detailClienteDocumento').innerText = shipment.CLIENTE_DOCUMENTO;
+          document.getElementById('detailClienteNombre').innerText = shipment.CLIENTE_NOMBRE;
+          document.getElementById('detailClienteDireccion').innerText = shipment.CLIENTE_DIRECCION;
+          document.getElementById('detailClienteTelefono').innerText = shipment.CLIENTE_TELEFONO;
+          document.getElementById('detailDireccionDestino').innerText = shipment.DIRECCION_DESTINO;
+          document.getElementById('detailCostoEnvio').innerText = shipment.COSTO_ENVIO;
+          document.getElementById('detailEstadoEnvio').innerText = shipment.ESTADO_ENVIO;
+          document.getElementById('detailTotalEnvio').innerText = totalEnvio;
+          const productosList = shipment.PRODUCTOS.map(product => `${product.NOMBRE} (Cantidad: ${product.CANTIDAD})`).join(', ');
+          document.getElementById('detailProductos').innerText = productosList;
+
+          const modal = document.getElementById('shipmentDetailModal');
+          modal.classList.remove('pointer-events-none', 'opacity-0');
+          modal.classList.add('opacity-100');
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error cargando los detalles del envío',
+          });
+        }
+      });
     });
 
     document.querySelectorAll('.edit-button').forEach(button => {
@@ -215,16 +277,14 @@ async function loadShipments() {
           const response = await axios.get(`/shipments/${envioId}`);
           const shipment = response.data;
 
-          document.getElementById('envioId').value = shipment.ENVIO_ID;
-          document.getElementById('cliente_documento').value = shipment.CLIENTE_DOCUMENTO;
-          document.getElementById('cliente_nombre').value = shipment.CLIENTE_NOMBRE;
-          document.getElementById('cliente_direccion').value = shipment.CLIENTE_DIRECCION;
-          document.getElementById('cliente_telefono').value = shipment.CLIENTE_TELEFONO;
-          document.getElementById('direccion_destino').value = shipment.DIRECCION_DESTINO;
-          document.getElementById('costo_envio').value = shipment.COSTO_ENVIO;
-          document.getElementById('estado_envio').value = shipment.ESTADO_ENVIO;
+          document.getElementById('envioId').value = shipment.ENVIO_ID || '';
+          document.getElementById('cliente_documento').value = shipment.CLIENTE_DOCUMENTO || '';
+          document.getElementById('direccion_destino').value = shipment.DIRECCION_DESTINO || '';
+          document.getElementById('costo_envio').value = shipment.COSTO_ENVIO || '';
+          document.getElementById('estado_envio').value = shipment.ESTADO_ENVIO || 'pendiente';
 
-          // Limpiar y rellenar los productos
+          await loadClientData(shipment.CLIENTE_DOCUMENTO);
+
           const productsContainer = document.getElementById('productsContainer');
           productsContainer.innerHTML = '';
           shipment.PRODUCTOS.forEach(product => {
@@ -239,10 +299,8 @@ async function loadShipments() {
             productsContainer.appendChild(productContainer);
           });
 
-          // Llamar a loadProducts para rellenar las opciones de productos en los selects
           await loadProducts();
 
-          // Establecer el valor correcto en cada select
           const productSelects = productsContainer.querySelectorAll('select[name="producto_id[]"]');
           productSelects.forEach((select, index) => {
             select.value = shipment.PRODUCTOS[index].PRODUCTO_ID;
@@ -250,8 +308,9 @@ async function loadShipments() {
 
           document.getElementById('formTitle').innerText = 'Editar Envío';
           document.getElementById('submitShipmentButton').innerText = 'Actualizar Envío';
-          document.getElementById('clientForm').classList.remove('hidden');
-          document.getElementById('shipmentForm').classList.remove('hidden');
+          const modal = document.getElementById('shipmentFormModal');
+          modal.classList.remove('pointer-events-none', 'opacity-0');
+          modal.classList.add('opacity-100');
           document.getElementById('searchSection').classList.add('hidden');
         } catch (error) {
           console.error('Error cargando el envío:', error);
@@ -259,6 +318,27 @@ async function loadShipments() {
             icon: 'error',
             title: 'Error',
             text: 'Error cargando el envío',
+          });
+        }
+      });
+    });
+
+    document.querySelectorAll('.mark-done-button').forEach(button => {
+      button.addEventListener('click', async function() {
+        const envioId = this.getAttribute('data-id');
+        try {
+          await axios.put(`/shipments/${envioId}`, { estado_envio: 'hecho' });
+          Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: 'Envío marcado como hecho',
+          });
+          loadShipments();
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error marcando el envío como hecho',
           });
         }
       });
@@ -279,26 +359,59 @@ document.getElementById('searchEnvioButton').addEventListener('click', async fun
     const response = await axios.get(`/shipments/${envioId}`);
     const shipment = response.data;
 
-    document.getElementById('reportEnvioId').innerText = shipment.ENVIO_ID;
-    document.getElementById('reportClienteDocumento').innerText = shipment.CLIENTE_DOCUMENTO;
-    document.getElementById('reportClienteNombre').innerText = shipment.CLIENTE_NOMBRE;
-    document.getElementById('reportClienteDireccion').innerText = shipment.CLIENTE_DIRECCION;
-    document.getElementById('reportClienteTelefono').innerText = shipment.CLIENTE_TELEFONO;
-    document.getElementById('reportDireccionDestino').innerText = shipment.DIRECCION_DESTINO;
-    document.getElementById('reportCostoEnvio').innerText = shipment.COSTO_ENVIO;
-    document.getElementById('reportEstadoEnvio').innerText = shipment.ESTADO_ENVIO;
-    const productosList = shipment.PRODUCTOS.map(product => `${product.NOMBRE} (Cantidad: ${product.CANTIDAD})`).join(', ');
-    document.getElementById('reportProductos').innerText = productosList;
+    const totalEnvio = shipment.COSTO_ENVIO + shipment.PRODUCTOS.reduce((total, product) => total + product.PRECIO * product.CANTIDAD, 0);
 
-    document.getElementById('shipmentReportModal').style.display = 'block';
+    document.getElementById('detailEnvioId').innerText = shipment.ENVIO_ID;
+    document.getElementById('detailClienteDocumento').innerText = shipment.CLIENTE_DOCUMENTO;
+    document.getElementById('detailClienteNombre').innerText = shipment.CLIENTE_NOMBRE;
+    document.getElementById('detailClienteDireccion').innerText = shipment.CLIENTE_DIRECCION;
+    document.getElementById('detailClienteTelefono').innerText = shipment.CLIENTE_TELEFONO;
+    document.getElementById('detailDireccionDestino').innerText = shipment.DIRECCION_DESTINO;
+    document.getElementById('detailCostoEnvio').innerText = shipment.COSTO_ENVIO;
+    document.getElementById('detailEstadoEnvio').innerText = shipment.ESTADO_ENVIO;
+    document.getElementById('detailTotalEnvio').innerText = totalEnvio;
+    const productosList = shipment.PRODUCTOS.map(product => `${product.NOMBRE} (Cantidad: ${product.CANTIDAD})`).join(', ');
+    document.getElementById('detailProductos').innerText = productosList;
+
+    const modal = document.getElementById('shipmentDetailModal');
+    modal.classList.remove('pointer-events-none', 'opacity-0');
+    modal.classList.add('opacity-100');
     document.getElementById('cancelSearchButton').classList.remove('hidden');
   } catch (error) {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Error no se encontro el envío',
+      text: 'No se encontró el envío',
     });
   }
+});
+
+async function loadClientData(docId) {
+  try {
+    const response = await axios.get(`/get-client-by-doc/${docId}`);
+    const client = response.data;
+
+    document.getElementById('cliente_nombre').value = client.NOMBRE || '';
+    document.getElementById('cliente_direccion').value = client.DIRECCION || '';
+    document.getElementById('cliente_telefono').value = client.TELEFONO || '';
+    document.getElementById('cliente_correo').value = client.CORREO_ELECTRONICO || '';
+
+    document.getElementById('clientForm').classList.remove('hidden');
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      document.getElementById('clientForm').classList.remove('hidden');
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error cargando el cliente',
+      });
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadShipments();
 });
 
 loadProducts();

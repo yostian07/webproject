@@ -105,12 +105,21 @@ async function submitSale() {
     email: document.getElementById('email').value
   };
 
+  // Nombres descriptivos de los campos en español
+  const fieldNames = {
+    name: 'Nombre',
+    document: 'Documento de identidad',
+    phone: 'Teléfono',
+    address: 'Dirección',
+    email: 'Correo Electrónico'
+  };
+
   // Validación de campos obligatorios
   for (const key in clientData) {
     if (!clientData[key]) {
       Swal.fire({
         title: 'Error',
-        text: `El campo ${key} es obligatorio`,
+        text: `El campo ${fieldNames[key]} es obligatorio`,
         icon: 'error',
         confirmButtonText: 'Ok'
       });
@@ -177,6 +186,7 @@ async function submitSale() {
         confirmButtonText: 'Ok'
       });
       window.open(result.fileUrl, '_blank'); // Abrir el PDF generado en una nueva pestaña
+      resetSaleForm(); // Llamar a la función para restablecer el formulario
     } else {
       Swal.fire({
         title: 'Error',
@@ -194,6 +204,32 @@ async function submitSale() {
     });
     console.error('Error:', error);
   }
+}
+
+function resetSaleForm() {
+  document.getElementById('name').value = '';
+  document.getElementById('document').value = '';
+  document.getElementById('phone').value = '';
+  document.getElementById('address').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('date').value = '';
+  document.getElementById('seller').value = '';
+
+  // Reset product table
+  const productTable = document.getElementById('product-table');
+  productTable.innerHTML = ''; // Esto eliminará todas las filas de la tabla de productos
+
+  // Reset payment method
+  document.querySelectorAll('input[name="payment"]').forEach(radio => {
+    radio.checked = false;
+  });
+
+  // Establecer la fecha actual en el campo de fecha nuevamente
+  const today = new Date();
+  const todayString = today.getFullYear() + '-' + 
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(today.getDate()).padStart(2, '0');
+  document.getElementById('date').value = todayString;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

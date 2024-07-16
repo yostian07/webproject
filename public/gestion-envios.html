@@ -4,225 +4,166 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Envíos</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="./output.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link rel="stylesheet" href="assets/css/gestion-envios.css">
-
+  <style>
+    .scrollable-table {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 <body class="bg-gray-800 text-gray-900">
   <header class="bg-gray-900 text-white px-4 py-3 animate-slide-in">
     <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-lg font-bold">Gestión de Clientes</h1>
+      <h1 class="text-lg font-bold">Gestión de envíos</h1>
       <nav>
-        <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al Dashboard</a>
+        <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al dashboard</a>
       </nav>
     </div>
   </header>
-  <div class="container mx-auto p-4">
-    <h1 class="text-2xl text-white font-bold mb-4">Gestión de Envíos</h1>
-    <button id="toggleFormButton" class="bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700 mb-4">Registrar Envío</button>
-    <div id="searchSection">
-      <div class="mb-4">
-        <h2 class="text-xl text-white font-bold mb-2">Buscar Envío</h2>
-        <input type="text" id="searchEnvioId" placeholder="ID del Envío" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-        <button type="button" id="searchEnvioButton" class="mt-2 w-full bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700">Buscar</button>
-        <button type="button" id="cancelSearchButton" class="mt-2 w-full bg-gray-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-gray-700 hidden">Cancelar</button>
-      </div>
-    </div>
+  <main class="container mx-auto p-4">
+    <button id="toggleFormButton" class="bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 mb-4">Registrar envío</button>
+    <section id="searchSection" class="mb-4">
+      <h2 class="text-xl text-white font-bold mb-2">Buscar envío</h2>
+      <input type="text" id="searchEnvioId" placeholder="ID del Envío" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+      <button type="button" id="searchEnvioButton" class="mt-2 w-full bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700 transition duration-300 ease-in-out">Buscar</button>
+      <button type="button" id="cancelSearchButton" class="mt-2 w-full bg-gray-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-gray-700 hidden">Cancelar</button>
+    </section>
 
-    <form id="shipmentForm" class="bg-white p-2 rounded shadow-md hidden max-w-sm mx-auto">
-      <h2 class="text-xl  font-bold mb-4" id="formTitle">Registrar Envío</h2>
-      <input type="hidden" id="envioId" name="envioId">
-      <div class="mb-4">
-        <label for="cliente_documento" class="block text-sm mx-auto text-center font-medium text-gray-700">Documento del Cliente</label>
-        <input type="text" id="cliente_documento" name="cliente_documento" class="mt-1 block mx-auto block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-        <button type="button" id="loadClient" class="mt-2  bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700 mx-auto block">Cargar Cliente</button>
-      </div>
-
-      <div id="clientForm" class="hidden">
-        <div class="mb-4">
-          <label for="cliente_nombre" class="block text-sm font-medium mx-auto block text-center text-gray-700">Nombre del Cliente</label>
-          <input type="text" id="cliente_nombre" name="cliente_nombre" class="mt-1 block mx-auto block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+    <section class="container py-6 bg-gray-300 mx-auto rounded-xl px-4" style="height: 490px; max-width: 1500px;">
+      <!-- Modal para Registro de Envío -->
+      <div id="shipmentFormModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-gray-200 p-6 rounded-lg shadow-md w-full max-w-lg relative">
+          <button id="closeFormModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+          <h2 class="text-xl font-bold mb-4" id="formTitle">Registrar envío</h2>
+          <form id="shipmentForm">
+            <input type="hidden" id="envioId" name="envioId">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="col-span-2">
+                <label for="cliente_documento" class="block text-sm font-medium text-gray-700">Documento del cliente</label>
+                <input type="text" id="cliente_documento" name="cliente_documento" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <button type="button" id="loadClient" class="mt-2 bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 w-full">Cargar Cliente</button>
+              </div>
+              <div id="clientForm" class="opacity-0 pointer-events-none col-span-2 grid grid-cols-2 gap-4 transition-opacity duration-300">
+                <div>
+                  <label for="cliente_nombre" class="block text-sm font-medium text-gray-700">Nombre del cliente</label>
+                  <input type="text" id="cliente_nombre" name="cliente_nombre" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                  <label for="cliente_telefono" class="block text-sm font-medium text-gray-700">Teléfono del cliente</label>
+                  <input type="text" id="cliente_telefono" name="cliente_telefono" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                  <label for="cliente_correo" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                  <input type="email" id="cliente_correo" name="cliente_correo" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="col-span-2">
+                  <label for="cliente_direccion" class="block text-sm font-medium text-gray-700">Dirección del cliente</label>
+                  <input type="text" id="cliente_direccion" name="cliente_direccion" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+              </div>
+              <div class="col-span-2">
+                <label for="direccion_destino" class="block text-sm font-medium text-gray-700">Dirección de destino</label>
+                <input type="text" id="direccion_destino" name="direccion_destino" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="costo_envio" class="block text-sm font-medium text-gray-700">Costo de Envío</label>
+                <input type="text" id="costo_envio" name="costo_envio" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="estado_envio" class="block text-sm font-medium text-gray-700">Estado del envío</label>
+                <select id="estado_envio" name="estado_envio" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <option value="pendiente">Pendiente</option>
+                  <option value="hecho">Hecho</option>
+                </select>
+              </div>
+              <div class="col-span-2">
+                <div id="productsContainer" class="mt-2"></div>
+              </div>
+              <div class="col-span-2">
+                <button type="button" id="addProductButton" class="bg-green-600 text-white py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 w-full mt-2">Agregar producto</button>
+              </div>
+              <div class="col-span-2">
+                <button type="submit" class="styled-button mt-2 py-2 px-4 w-full bg-blue-600 text-white rounded-md shadow-sm transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110" id="submitShipmentButton">Registrar envío</button>
+              </div>
+              <div class="col-span-2">
+                <button type="button" class="bg-gray-600 text-white py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 w-full mt-2" id="cancelEditButton">Cancelar</button>
+              </div>
+            </div>
+          </form>
         </div>
-        <div class="mb-4">
-          <label for="cliente_direccion" class="text-center block text-sm mx-auto block font-medium text-gray-700">Dirección del Cliente</label>
-          <input type="text" id="cliente_direccion" name="cliente_direccion" class="mt-1 block mx-auto block  p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+      </div>
+
+      <!-- Sección de Envíos Pendientes y Hechos -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <!-- Envíos Pendientes -->
+        <div class="bg-gray-200 p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-bold mb-4">Envíos pendientes</h2>
+          <div class="overflow-x-auto scrollable-table rounded-xl">
+            <table class="min-w-full bg-gray-100 shadow-md rounded">
+              <thead class="text-white bg-gray-600">
+                <tr class="bg-gray-300 sticky top-0">
+                  <th class="py-2 px-4">ID de envío</th>
+                  <th class="py-2 px-4">Cliente</th>
+                  <th class="py-2 px-4">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="pendingShipmentsTableBody" class="text-gray-700">
+                <!-- Los datos aparecen dinámicamente -->
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="mb-4">
-          <label for="cliente_telefono" class="text-center block mx-auto block text-sm font-medium text-gray-700">Teléfono del Cliente</label>
-          <input type="text" id="cliente_telefono" name="cliente_telefono" class="mt-1 block mx-auto block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+
+        <!-- Envíos Hechos -->
+        <div class="bg-gray-200 p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-bold mb-4">Envíos hechos</h2>
+          <div class="overflow-x-auto scrollable-table rounded-xl">
+            <table class="min-w-full bg-gray-100 shadow-md rounded">
+              <thead class="text-white bg-gray-600">
+                <tr class="bg-gray-300 sticky top-0">
+                  <th class="py-2 px-4">ID de envío</th>
+                  <th class="py-2 px-4">Cliente</th>
+                  <th class="py-2 px-4">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="completedShipmentsTableBody" class="text-gray-700">
+                <!-- Los datos aparecen dinámicamente -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="mb-4">
-        <label for="direccion_destino" class="text-center block text-sm mx-auto block font-medium text-gray-700">Dirección de Destino</label>
-        <input type="text" id="direccion_destino" name="direccion_destino" class="mt-1 block mx-auto block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-      </div>
-      <div class="mb-4">
-        <label for="costo_envio" class="text-center block text-sm  mx-auto block font-medium text-gray-700">Costo de Envío</label>
-        <input type="text" id="costo_envio" name="costo_envio" class="mt-1 block mx-auto block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-      </div>
-      <div class="mb-4">
-        <label for="estado_envio" class="text-center block text-sm mx-auto block font-medium text-gray-700">Estado del Envío</label>
-        <select id="estado_envio" name="estado_envio" class="mt-1 block mx-auto block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="pendiente">Pendiente</option>
-          <option value="activo">Activo</option>
-        </select>
-      </div>
-      <div id="productsContainer"></div>
-      <button type="button" id="addProductButton" class="mx-auto block bg-green-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-green-700 mt-2">Agregar Producto</button>
-      <button type="submit" class="styled-button mt-2 py-1 px-2 mx-auto block" id="submitShipmentButton">Registrar Envío</button>
-
-      <button type="button" class="mx-auto block bg-gray-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-gray-700 mt-2" id="cancelEditButton">Cancelar</button>
-    </form>
-
-    <!-- Modal para el reporte del envío -->
-    <div id="shipmentReportModal" class="modal">
-      <div class="modal-content">
-        <span class="close" id="closeReportModal">&times;</span>
-        <h2 class="text-xl font-bold mb-4">Detalles del Envío</h2>
-        <p><strong>ID del Envío:</strong> <span id="reportEnvioId"></span></p>
-        <p><strong>Documento del Cliente:</strong> <span id="reportClienteDocumento"></span></p>
-        <p><strong>Nombre del Cliente:</strong> <span id="reportClienteNombre"></span></p>
-        <p><strong>Dirección del Cliente:</strong> <span id="reportClienteDireccion"></span></p>
-        <p><strong>Teléfono del Cliente:</strong> <span id="reportClienteTelefono"></span></p>
-        <p><strong>Dirección de Destino:</strong> <span id="reportDireccionDestino"></span></p>
-        <p><strong>Costo de Envío:</strong> <span id="reportCostoEnvio"></span></p>
-        <p><strong>Estado del Envío:</strong> <span id="reportEstadoEnvio"></span></p>
-        <p><strong>Productos:</strong> <span id="reportProductos"></span></p>
-        <button type="button" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-gray-700 mt-4" id="closeReportButton">Cerrar</button>
-      </div>
-    </div>
-
-    <h1 class="text-2xl text-white font-bold mt-8 mb-4">Envíos</h1>
-    <div class="overflow-x-auto rounded-xl">
-      <table class="min-w-full bg-white shadow-md rounded data-table">
-        <thead class="text-white">
-          <tr>
-            <th class="py-2 px-4">ID de Envío</th>
-            <th class="py-2 px-4">Documento del Cliente</th>
-            <th class="py-2 px-4">Nombre del Cliente</th>
-            <th class="py-2 px-4">Dirección del Cliente</th>
-            <th class="py-2 px-4">Teléfono del Cliente</th>
-            <th class="py-2 px-4">Dirección de Destino</th>
-            <th class="py-2 px-4">Costo de Envío</th>
-            <th class="py-2 px-4">Estado del Envío</th>
-            <th class="py-2 px-4">Total</th>
-            <th class="py-2 px-4">Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="shipmentsTableBody" class="text-gray-700">
-          <!-- Rows will be added here dynamically -->
-        </tbody>
-      </table>
-    </div>
+   <!-- Modal para Detalles de Envío -->
+<div id="shipmentDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
+    <button id="closeDetailModal" class="absolute top-2 right-2 close-button">&times;</button>
+    <h2 class="text-xl font-bold mb-4">Detalles del envío</h2>
+    <p><strong>ID del envío:</strong> <span id="detailEnvioId"></span></p>
+    <p><strong>Documento del cliente:</strong> <span id="detailClienteDocumento"></span></p>
+    <p><strong>Nombre del cliente:</strong> <span id="detailClienteNombre"></span></p>
+    <p><strong>Dirección del cliente:</strong> <span id="detailClienteDireccion"></span></p>
+    <p><strong>Teléfono del cliente:</strong> <span id="detailClienteTelefono"></span></p>
+    <p><strong>Dirección de destino:</strong> <span id="detailDireccionDestino"></span></p>
+    <p><strong>Costo de envío:</strong> <span id="detailCostoEnvio"></span></p>
+    <p><strong>Estado del envío:</strong> <span id="detailEstadoEnvio"></span></p>
+    <p><strong>Total del envío:</strong> <span id="detailTotalEnvio"></span></p>
+    <p><strong>Productos:</strong> <span id="detailProductos"></span></p>
+    <button type="button" class="w-full bg-gray-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-gray-700 mt-4" id="closeDetailButton">Cerrar</button>
   </div>
-  <script>
-document.querySelectorAll('.truck-button').forEach(button => {
-    button.addEventListener('click', e => {
-
-        e.preventDefault();
-        
-        let box = button.querySelector('.box'),
-            truck = button.querySelector('.truck');
-        
-        if(!button.classList.contains('done')) {
-            
-            if(!button.classList.contains('animation')) {
-
-                button.classList.add('animation');
-
-
-                gsap.to(button, {
-                    '--box-s': 1,
-                    '--box-o': 1,
-                    duration: .3,
-                    delay: .5
-                });
-
-                gsap.to(box, {
-                    x: 0,
-                    duration: .4,
-                    delay: .7
-                });
-
-                gsap.to(button, {
-                    '--hx': -5,
-                    '--bx': 50,
-                    duration: .18,
-                    delay: .92
-                });
-
-                gsap.to(box, {
-                    y: 0,
-                    duration: .1,
-                    delay: 1.15
-                });
-
-                gsap.set(button, {
-                    '--truck-y': 0,
-                    '--truck-y-n': -26
-                });
-
-                gsap.to(button, {
-                    '--truck-y': 1,
-                    '--truck-y-n': -25,
-                    duration: .2,
-                    delay: 1.25,
-                    onComplete() {
-                        gsap.timeline({
-                            onComplete() {
-                                button.classList.add('done');
-                            }
-                        }).to(truck, {
-                            x: 0,
-                            duration: .4
-                        }).to(truck, {
-                            x: 40,
-                            duration: 1
-                        }).to(truck, {
-                            x: 20,
-                            duration: .6
-                        }).to(truck, {
-                            x: 96,
-                            duration: .4
-                        });
-                        gsap.to(button, {
-                            '--progress': 1,
-                            duration: 2.4,
-                            ease: "power2.in"
-                        });
-                    }
-                });
-                
-            }
-            
-        } else {
-            button.classList.remove('animation', 'done');
-            gsap.set(truck, {
-                x: 4
-            });
-            gsap.set(button, {
-                '--progress': 0,
-                '--hx': 0,
-                '--bx': 0,
-                '--box-s': .5,
-                '--box-o': 0,
-                '--truck-y': 0,
-                '--truck-y-n': -26
-            });
-            gsap.set(box, {
-                x: -24,
-                y: -6
-            });
-        }
-
-    });
-});
-
-
-  </script>
+</div>
+  </main>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="scripts/gestion-envios.js"></script>
+  <script>
+    document.getElementById('loadClient').addEventListener('click', () => {
+      const clientForm = document.getElementById('clientForm');
+      clientForm.classList.toggle('opacity-0');
+      clientForm.classList.toggle('pointer-events-none');
+    });
+  </script>
 </body>
 </html>

@@ -1,21 +1,4 @@
-     /* Definir la animación */
-     @keyframes slideIn {
-        from {
-            transform: scale(0.8);
-            opacity: 0;
-        }
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
 
-    /* Clase para aplicar la animación */
-    .animate-slide-in {
-        animation: slideIn 0.3s ease-in-out;
-        opacity: 0; /* Asegurar que los elementos sean inicialmente invisibles */
-        transform: scale(0.8); /* Estado inicial para la animación */
-    }
 
     .tabla-contenedor {
         max-height: 400px; /* Altura máxima del contenedor */

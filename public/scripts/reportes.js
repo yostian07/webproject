@@ -76,7 +76,7 @@ function mostrarDatosEnTabla(datos) {
 
 function mostrarBotonExportar() {
     const botonExportarDiv = document.getElementById('boton-exportar');
-    botonExportarDiv.innerHTML = `<button class="bg-gray-900 text-white px-4 py-2 rounded" onclick="exportToCSV(datosReporte)">Exportar a CSV</button>`;
+    botonExportarDiv.innerHTML = `<button class="transition duration-150 ease-in-out hover:-translate-y-1 hover:scale-110 bg-gray-900 text-white px-4 py-2 rounded" onclick="exportToCSV(datosReporte)">Exportar a CSV</button>`;
 }
 
 function exportToCSV(datos) {

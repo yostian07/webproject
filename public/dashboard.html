@@ -4,27 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TecShop</title>
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link href="./output.css" rel="stylesheet">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="flex flex-col min-h-screen">
-  
     <header class="bg-gray-900 text-white px-4 lg:px-6 py-3 flex items-center justify-between">
         <a href="#" class="flex items-center">
             <img src="images/logo.png" alt="Logo" class="h-8 mr-3">
             <span class="animated-text">TecShop</span>
         </a>
         <nav class="flex gap-4">
-            <a href="Gestion Clientes.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Clientes</a>
-            <a href="inventario.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Productos</a>
-            <a href="ventas.html" class="text-sm font-medium hover:text-gray-300 animated-link">Ventas y Facturación</a>
-            <a href="gestion-proveedores.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Proveedores</a>
+            <a href="Gestion Clientes.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de clientes</a>
+            <a href="inventario.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de productos</a>
+            <a href="ventas.html" class="text-sm font-medium hover:text-gray-300 animated-link">Ventas y facturación</a>
+            <a href="gestion-proveedores.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de proveedores</a>
             <a href="reportes.html" class="text-sm font-medium hover:text-gray-300 animated-link">Reportes</a>
-            <a href="gestion-envios.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de Envíos</a>
-            <a href="#" id="logoutBtn" class="text-sm font-medium hover:text-gray-300 animated-link">Logout</a>
-            <div class="notification">
+            <a href="gestion-envios.html" class="text-sm font-medium hover:text-gray-300 animated-link">Gestión de envíos</a>
+            <a href="#" id="logoutBtn" class="text-sm font-medium hover:text-gray-300 animated-link">Cerrar sesión</a>
+            <div class="notification">  
                 <a href="#" class="text-gray-300 hover:text-gray-100" id="notificaciones-link">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405C18.785 14.21 18 12.686 18 11V7a6 6 0 10-12 0v4c0 1.686-.785 3.21-1.595 4.595L3 17h5m4 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -37,35 +86,36 @@
    
     <main class="flex-grow welcome-background p-6">
         <div class="max-w-6xl mx-auto text-center py-20">
-            <h1 class="text-white text-4xl font-bold">Bienvenido a tu Dashboard</h1>
+            <h1 class="text-white text-4xl font-bold">Bienvenido a tu dashboard</h1>
             <p class="text-white mt-3">Gestiona tu tienda de videojuegos eficientemente.</p>
         </div>
-        <div class="chart-container">
-            <div class="bg-gray-900 p-6 rounded-xl shadow-md mb-6">
-                <h2 class="text-2xl text-white mb-4">Ventas Registradas</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gray-900 p-6  rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl text-white mb-4">Ventas registradas</h2>
                 <canvas id="ventasChart" class="chart-small"></canvas>
             </div>
-            <div class="bg-gray-900 p-6 rounded-xl shadow-md mb-6 relative">
-                <div class="flex justify-between items-start w-full mb-4">
-                    <h2 class="text-2xl text-white font-semibold">Productos Más Vendidos</h2>
-                </div>
+            <div class="bg-gray-900 p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl text-white mb-4">Clientes que más compran</h2>
+                <canvas id="clientesChart" class="chart-small"></canvas>
+            </div>
+            <div class="bg-gray-900 p-6 rounded-xl shadow-md mb-6">
+                <h2 class="text-2xl text-white mb-4">Productos más vendidos</h2>
                 <canvas id="productosChart" class="chart-small"></canvas>
                 <div class="flex justify-end mt-4">
-                    <button id="downloadCSV" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">Descargar CSV</button>
+                    <button id="downloadCSV" class="transition duration-150 ease-in-out hover:-translate-y-1 hover:scale-110 px-3 py-1 bg-blue-600 text-white rounded text-sm">Descargar CSV</button>
                 </div>
             </div>
-            
+        </div>
     </main>
 
-    <div id="notificaciones-modal" class="modal">
+    <div id="notificaciones-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close" id="modal-close">&times;</span>
-            <h2>Productos con stock bajo</h2>
-            <ul id="notificaciones-list"></ul>
+            <h2 class="text-xl font-bold mb-4">Productos con stock bajo</h2>
+            <ul id="notificaciones-list" class="list-disc list-inside"></ul>
         </div>
     </div>
     
-
     <script src="scripts/dashboard.js"></script>
 </body>
 </html>

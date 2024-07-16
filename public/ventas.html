@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registro de Venta</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="output.css">
   <!-- SweetAlert2 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <style>
@@ -31,42 +31,42 @@
     <div class="container mx-auto flex justify-between items-center animate-slide-in">
       <h1 class="text-xl font-bold">Registro de Venta</h1>
       <nav>
-        <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al Dashboard</a>
+        <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al dashboard</a>
       </nav>
     </div>
   </header>
 
   <div class="container mx-auto my-8 px-4 md:px-6 lg:px-8">
-    <h1 class="text-3xl font-bold mb-8 text-white animate-slide-in">Registro de Venta</h1>
+    <h1 class="text-3xl font-bold mb-8 text-white animate-slide-in">Facturacion</h1>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="bg-white shadow-lg rounded-lg p-6 animate-slide-in">
+      <div class="bg-gray-50 shadow-lg rounded-lg p-6 animate-slide-in">
         <h2 class="text-lg font-bold mb-4">Datos del Cliente</h2>
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" id="client-form">
           <div>
             <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <input id="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="text"/>
+            <input id="name" class="mt-1 block w-full rounded-md bg-gray-200 border-gray-500 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="text"/>
           </div>
           <div>
-            <label for="document" class="block text-sm font-medium text-gray-700">Documento de Identidad</label>
-            <input id="document" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="text"/>
+            <label for="document" class="block text-sm font-medium text-gray-700">Documento de identidad</label>
+            <input id="document" class="mt-1 block w-full rounded-md bg-gray-200 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="text"/>
           </div>
           <div>
             <label for="phone" class="block text-sm font-medium text-gray-700">Teléfono</label>
-            <input id="phone" type="tel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
+            <input id="phone" type="tel" class="mt-1 block w-full bg-gray-200 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
           </div>
           <div>
             <label for="address" class="block text-sm font-medium text-gray-700">Dirección</label>
-            <input id="address" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="text"/>
+            <input id="address" class="mt-1 block w-full rounded-md bg-gray-200 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="text"/>
           </div>
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-            <input id="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="email"/>
+            <input id="email" class="mt-1 block w-full rounded-md bg-gray-200 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" type="email"/>
           </div>
         </form>
       </div>
 
-      <div class="bg-white shadow-lg rounded-lg p-6 animate-slide-in">
-        <h2 class="text-lg font-bold mb-4">Productos Vendidos</h2>
+      <div class="bg-gray-50 shadow-lg rounded-lg p-6 animate-slide-in">
+        <h2 class="text-lg font-bold mb-4">Productos vendidos</h2>
         <div class="overflow-x-auto">
           <table class="w-full table-auto">
             <thead>
@@ -74,7 +74,7 @@
                 <th class="px-4 py-2 text-left">Producto</th>
                 <th class="px-4 py-2 text-left">Descripción</th>
                 <th class="px-4 py-2 text-right">Cantidad</th>
-                <th class="px-4 py-2 text-right">Precio Unitario</th>
+                <th class="px-4 py-2 text-right">Precio unitario</th>
               </tr>
             </thead>
             <tbody id="product-table">
@@ -85,8 +85,8 @@
         <button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition duration-200" onclick="addProductRow()">Agregar Producto</button>
       </div>
 
-      <div class="bg-white shadow-lg rounded-lg p-6 animate-slide-in">
-        <h2 class="text-lg font-bold mb-4">Forma de Pago</h2>
+      <div class="bg-gray-50 shadow-lg rounded-lg p-6 animate-slide-in">
+        <h2 class="text-lg font-bold mb-4">Forma de pago</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="inline-flex items-center">
@@ -109,17 +109,16 @@
         </div>
       </div>
 
-      <div class="bg-white shadow-lg rounded-lg p-6 animate-slide-in">
-        <h2 class="text-lg font-bold mb-4">Fecha y Vendedor</h2>
+      <div class="bg-gray-50 shadow-lg rounded-lg p-6 animate-slide-in">
+        <h2 class="text-lg font-bold mb-4">Fecha y vendedor</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="date" class="block text-sm font-medium text-gray-700">Fecha de Venta</label>
-            <input id="date" type="date" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
-
+            <input id="date" type="date" readonly class="bg-gray-200 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
           </div>
           <div>
             <label for="seller" class="block text-sm font-medium text-gray-700">Vendedor</label>
-            <input id="seller" type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
+            <input id="seller" type="text" class="bg-gray-200 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
           </div>
         </div>
       </div>
@@ -132,6 +131,5 @@
   <!-- SweetAlert2 JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="scripts/ventas.js"></script>
-
 </body>
 </html>

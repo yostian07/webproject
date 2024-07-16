@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const addProviderBtn = document.getElementById('add-provider-btn');
-    const addProviderForm = document.getElementById('add-provider-form');
+    const addProviderModal = document.getElementById('add-provider-modal');
+    const closeModalBtn = document.getElementById('close-modal');
     const providerForm = document.getElementById('provider-form');
     const tbody = document.getElementById('proveedores-body');
     const searchInput = document.getElementById('search-input');
@@ -10,20 +11,57 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeDetailsBtn = document.getElementById('close-details-btn');
 
     addProviderBtn.addEventListener('click', () => {
-        addProviderForm.classList.toggle('hidden');
+        providerForm.reset();
+        addProviderModal.classList.remove('pointer-events-none', 'opacity-0');
+        addProviderModal.classList.add('opacity-100');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+        addProviderModal.classList.add('pointer-events-none', 'opacity-0');
+        addProviderModal.classList.remove('opacity-100');
     });
 
     providerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Validaciones
+        const nombre = document.getElementById('nombre').value.trim();
+        const numeroRuc = document.getElementById('numero_ruc').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const correoElectronico = document.getElementById('correo_electronico').value.trim();
+        const tipoProveedor = document.getElementById('tipo_proveedor').value.trim();
+        const direccion = document.getElementById('direccion').value.trim();
+        const productos = document.getElementById('productos').value.trim();
+
+        if (!nombre || !numeroRuc || !telefono || !correoElectronico || !tipoProveedor || !direccion || !productos) {
+            Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+            return;
+        }
+
+        if (!/^\d+$/.test(numeroRuc)) {
+            Swal.fire('Error', 'El número RUC debe contener solo números', 'error');
+            return;
+        }
+
+        if (!/^\d+$/.test(telefono)) {
+            Swal.fire('Error', 'El teléfono debe contener solo números', 'error');
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoElectronico)) {
+            Swal.fire('Error', 'El correo electrónico no es válido', 'error');
+            return;
+        }
+
         const formData = new FormData(providerForm);
         const data = {
-            nombre: formData.get('nombre'),
-            numero_ruc: formData.get('numero_ruc'),
-            telefono: formData.get('telefono'),
-            correo_electronico: formData.get('correo_electronico'),
-            tipo_proveedor: formData.get('tipo_proveedor'),
-            direccion: formData.get('direccion'),
-            productos: formData.get('productos').split(',').map(p => p.trim()) 
+            nombre,
+            numero_ruc: numeroRuc,
+            telefono,
+            correo_electronico: correoElectronico,
+            tipo_proveedor: tipoProveedor,
+            direccion,
+            productos: productos.split(',').map(p => p.trim()) 
         };
 
         const id = formData.get('proveedor_id');
@@ -47,6 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.ok) {
                 Swal.fire('Éxito', 'Proveedor guardado con éxito', 'success');
                 providerForm.reset();
+                addProviderModal.classList.add('pointer-events-none', 'opacity-0');
+                addProviderModal.classList.remove('opacity-100');
                 loadProviders();
             } else {
                 const errorData = await response.json();
@@ -78,19 +118,19 @@ document.addEventListener("DOMContentLoaded", () => {
             tbody.innerHTML = '';
             providers.forEach(proveedor => {
                 const tr = document.createElement('tr');
-                tr.classList.add('border-b', 'transition-colors', 'hover:bg-muted/50', 'data-[state=selected]:bg-muted');
+                tr.classList.add('bg-gray-100','border-b', 'transition-colors', 'hover:bg-muted/50', 'data-[state=selected]:bg-muted');
                 tr.innerHTML = `
-                    <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0 font-medium">${proveedor.NOMBRE || ''}</td>
-                    <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">${proveedor.TELEFONO || ''}</td>
-                    <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-                        ${(proveedor.PRODUCTOS ? proveedor.PRODUCTOS.split(',').map(producto => `<span class="inline-block bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 text-xs mr-2 mb-2">${producto}</span>`).join('') : '')}
+                    <td class="p-4 align-middle font-medium">${proveedor.NOMBRE || ''}</td>
+                    <td class="p-4 align-middle">${proveedor.TELEFONO || ''}</td>
+                    <td class="p-4 align-middle">
+                        ${(proveedor.PRODUCTOS ? proveedor.PRODUCTOS.split(',').map(producto => `<span class="inline-block bg-gray-200 rounded-full px-2 py-1 text-xs mr-2 mb-2">${producto}</span>`).join('') : '')}
                     </td>
-                    <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">${proveedor.NUMERO_RUC || ''}</td>
-                    <td class="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
+                    <td class="p-4 align-middle">${proveedor.NUMERO_RUC || ''}</td>
+                    <td class="p-4 align-middle">
                         <div class="flex gap-2">
-                            <button class="editar-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" data-id="${proveedor.PROVEEDOR_ID}">Editar</button>
-                            <button class="baja-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" data-id="${proveedor.PROVEEDOR_ID}">Dar de Baja</button>
-                            <button class="ver-btn inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" data-id="${proveedor.PROVEEDOR_ID}">Ver</button>
+                            <button class="editar-btn hover:bg-gray-600 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" data-id="${proveedor.PROVEEDOR_ID}">Editar</button>
+                            <button class="baja-btn hover:bg-gray-600 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" data-id="${proveedor.PROVEEDOR_ID}">Dar de baja</button>
+                            <button class="ver-btn hover:bg-gray-600 duration-300 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3" data-id="${proveedor.PROVEEDOR_ID}">Ver</button>
                         </div>
                     </td>
                 `;
@@ -162,7 +202,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('direccion').value = proveedor.DIRECCION || '';
                 document.getElementById('productos').value = proveedor.PRODUCTOS || '';  
                 document.getElementById('proveedor_id').value = proveedor.PROVEEDOR_ID || '';
-                document.getElementById('add-provider-form').classList.remove('hidden');
+                addProviderModal.classList.remove('pointer-events-none', 'opacity-0');
+                addProviderModal.classList.add('opacity-100');
                 document.getElementById('provider-form-title').innerText = 'Editar Proveedor';
             }
         } catch (error) {
@@ -200,4 +241,3 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cargar todos los proveedores inicialmente
     loadProviders();
 });
-

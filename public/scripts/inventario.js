@@ -11,6 +11,7 @@ async function fetchCategorias() {
     const categorias = await response.json();
 
     const selectCategoria = document.getElementById('filtrar-categoria');
+    selectCategoria.innerHTML = '<option value="">Todas las Categorías</option>'; // Clear existing options
     categorias.forEach(categoria => {
       const option = document.createElement('option');
       option.value = categoria;
@@ -41,17 +42,18 @@ async function fetchProductos(search = '', categoria = '') {
     const tableBody = document.querySelector('#productos-table tbody');
     tableBody.innerHTML = '';
     data.forEach(producto => {
+      const precio = producto[3] !== null ? parseFloat(producto[3]).toLocaleString('es-CR', { style: 'currency', currency: 'CRC' }) : 'N/A';
       const row = `
-        <tr class="border-b dark:border-gray-700">
+        <tr class="border-b dark:border-gray-400">
           <td class="px-4 py-2">${producto[1]}</td>
           <td class="px-4 py-2">${producto[2]}</td>
-          <td class="px-4 py-2">$${producto[3]}</td>
+          <td class="px-4 py-2">${precio}</td>
           <td class="px-4 py-2">${producto[4]}</td>
           <td class="px-4 py-2">${producto[5]}</td>
           <td class="px-4 py-2">
             <div class="flex gap-2">
-              <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-black text-white hover:bg-gray-800 h-9 rounded-md px-3" onclick="mostrarFormularioEditar(${producto[0]})">Editar</button>
-              <button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-black text-white hover:bg-gray-800 h-9 rounded-md px-3" onclick="eliminarProducto(${producto[0]})">Eliminar</button>
+              <button class="text-white transition duration-300 ease-in-out bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="mostrarFormularioEditar(${producto[0]})">Editar</button>
+              <button class="text-white transition duration-300 ease-in-out bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="eliminarProducto(${producto[0]})">Eliminar</button>
             </div>
           </td>
         </tr>
@@ -82,7 +84,7 @@ async function fetchTransacciones() {
     tableBody.innerHTML = '';
     data.forEach(transaccion => {
       const row = `
-        <tr class="border-b dark:border-gray-700">
+        <tr class="border-b dark:border-gray-400">
           <td class="px-4 py-2">${transaccion.FECHA || 'Fecha no disponible'}</td>
           <td class="px-4 py-2">${transaccion.PRODUCTO || 'Producto no disponible'}</td>
           <td class="px-4 py-2">${transaccion.CANTIDAD || 'Cantidad no disponible'}</td>
@@ -108,6 +110,22 @@ function buscarProducto() {
   fetchProductos(search, categoria);
 }
 
+const searchSpinner = document.getElementById('search-spinner');
+if (search) {
+  search.addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Mostrar el spinner
+      searchSpinner.classList.remove('hidden');
+      // Aquí puedes agregar tu lógica para buscar clientes
+
+      // Simulación de búsqueda (ejemplo: usando setTimeout)
+      setTimeout(() => {
+          // Ocultar el spinner después de que la búsqueda se complete
+          searchSpinner.classList.add('hidden');
+      }, 1000); // Cambia el tiempo según tus necesidades
+  }); 
+}
+
 function filtrarPorCategoria() {
   const categoria = document.getElementById('filtrar-categoria').value;
   fetchProductos('', categoria);
@@ -122,7 +140,7 @@ function mostrarFormularioAgregar() {
   document.getElementById('producto-stock').value = '';
   document.getElementById('producto-categoria').value = '';
   document.getElementById('producto-stock-minimo').value = '';
-  document.getElementById('formulario-producto').classList.remove('hidden');
+  mostrarFormularioProducto();
 }
 
 function mostrarFormularioEditar(id) {
@@ -138,16 +156,24 @@ function mostrarFormularioEditar(id) {
       document.getElementById('producto-stock').value = producto[4];
       document.getElementById('producto-categoria').value = producto[5];
       document.getElementById('producto-stock-minimo').value = producto[6];
-      document.getElementById('formulario-producto').classList.remove('hidden');
+      mostrarFormularioProducto();
     })
     .catch(error => console.error('Error fetching producto:', error));
 }
 
-function cerrarFormulario() {
-  document.getElementById('formulario-producto').classList.add('hidden');
+function mostrarFormularioProducto() {
+  const form = document.getElementById('formulario-producto');
+  form.classList.remove('hidden');
+  form.classList.add('flex', 'justify-center', 'items-center');
 }
 
-function guardarProducto() {
+function cerrarFormulario() {
+  const form = document.getElementById('formulario-producto');
+  form.classList.add('hidden');
+  form.classList.remove('flex', 'justify-center', 'items-center');
+}
+
+async function guardarProducto() {
   const id = document.getElementById('producto-id').value;
   const nombre = document.getElementById('producto-nombre').value;
   const descripcion = document.getElementById('producto-descripcion').value;
@@ -175,64 +201,53 @@ function guardarProducto() {
     stock_minimo: stockMinimo
   };
 
-  if (id) {
-    fetch(`/productos/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(producto)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        cerrarFormulario();
-        fetchProductos();
-        Swal.fire({
-          title: 'Éxito',
-          text: 'Producto actualizado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Ok'
-        });
-      } else {
-        Swal.fire({
-          title: 'Error',
-          text: 'Error al actualizar el producto',
-          icon: 'error',
-          confirmButtonText: 'Ok'
-        });
-      }
-    })
-    .catch(error => console.error('Error al actualizar el producto:', error));
-  } else {
-    fetch('/productos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(producto)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        cerrarFormulario();
-        fetchProductos();
-        Swal.fire({
-          title: 'Éxito',
-          text: 'Producto agregado correctamente',
-          icon: 'success',
-          confirmButtonText: 'Ok'
-        });
-      } else {
-        Swal.fire({
-          title: 'Error',
-          text: 'Error al agregar el producto',
-          icon: 'error',
-          confirmButtonText: 'Ok'
-        });
-      }
-    })
-    .catch(error => console.error('Error al agregar el producto:', error));
+  try {
+    let response;
+    if (id) {
+      response = await fetch(`/productos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(producto)
+      });
+    } else {
+      response = await fetch('/productos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(producto)
+      });
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      cerrarFormulario();
+      fetchProductos();
+      fetchCategorias(); // Actualiza las categorías después de guardar
+      Swal.fire({
+        title: 'Éxito',
+        text: id ? 'Producto actualizado correctamente' : 'Producto agregado correctamente',
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
+    } else {
+      Swal.fire({
+        title: 'Error',
+        text: id ? 'Error al actualizar el producto' : 'Error al agregar el producto',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+    }
+  } catch (error) {
+    console.error('Error al guardar el producto:', error);
+    Swal.fire({
+      title: 'Error',
+      text: 'Hubo un problema al guardar el producto',
+      icon: 'error',
+      confirmButtonText: 'Ok'
+    });
   }
 }
 

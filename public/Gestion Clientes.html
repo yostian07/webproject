@@ -4,73 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Clientes</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link href="./output.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="assets/css/gestion-clientes.css">
-
+    <link href="output.css" rel="stylesheet">
 </head>
 <body class="bg-gray-800 text-gray-900">
-    <header class="bg-gray-900 text-white px-4 py-3 animate-slide-in">
+   
+    <header class="bg-gray-900 text-white px-4 py-3">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-lg font-bold">Gestión de Clientes</h1>
             <nav>
-                <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al Dashboard</a>
+                <a href="dashboard.html" class="text-gray-300 hover:text-gray-100">Volver al dashboard</a>
             </nav>
         </div>
     </header>
     <main class="py-6">
-        <div class="container mx-auto px-4">
-            <div class="bg-white p-6 rounded-xl shadow-md animate-slide-in">
-                <h2 class="text-xl font-semibold mb-4">Agregar o Editar Cliente</h2>
+        <div class="container py-6 bg-gray-300 mx-auto rounded-xl px-4" style="height: 890px; max-width: 1400px;">
+            <div class="bg-gray-200 p-4 rounded-xl shadow-md">
+                <h2 class="text-xl font-semibold mb-2">Agregar o editar cliente</h2>
                 <form id="form-cliente" action="#" method="POST">
                     <input type="hidden" id="cliente_id" name="cliente_id">
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <input id="nombre" type="text" name="nombre" placeholder="Nombre Completo" class="border p-2 rounded w-full" required>
-                        <input id="documento_identidad" type="text" name="documento_identidad" placeholder="Documento de Identidad" class="border p-2 rounded w-full" required>
+                        <input id="nombre" type="text" name="nombre" placeholder="Nombre completo" class="bg-gray-100 rounded-xl border p-2 w-full" required pattern="[A-Za-z\s]+" title="El nombre no debe contener números.">
+                        <input id="documento_identidad" type="text" name="documento_identidad" placeholder="Documento de identidad" class="border p-2 bg-gray-100 rounded-xl w-full" required pattern="\d{9}" title="El documento de identidad debe tener 9 dígitos.">
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <input id="correo_electronico" type="email" name="correo_electronico" placeholder="Correo Electrónico" class="border p-2 rounded w-full" required>
-                        <input id="telefono" type="text" name="telefono" placeholder="Teléfono" class="border p-2 rounded w-full" required>
+                        <input id="correo_electronico" type="email" name="correo_electronico" placeholder="Correo electrónico" class="border p-2 bg-gray-100 rounded-xl w-full" required>
+                        <input id="telefono" type="text" name="telefono" placeholder="Teléfono" class="border p-2 bg-gray-100 rounded-xl w-full" required pattern="\d+" title="El teléfono solo debe contener números.">
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <input id="direccion" type="text" name="direccion" placeholder="Dirección" class="border p-2 rounded w-full" required>
-                        <select id="estado" name="estado" class="border p-2 rounded w-full" required>
-                            <option value="">Seleccionar Estado</option>
+                        <input id="direccion" type="text" name="direccion" placeholder="Dirección" class="border p-2 bg-gray-100 rounded-xl w-full" required>
+                        <select id="estado" name="estado" class="border p-2 bg-gray-100 rounded-xl w-full" required>
+                            <option value="">Seleccionar estado</option>
                             <option value="activo">Activo</option>
                             <option value="inactivo">Inactivo</option>
                         </select>
                     </div>
-                    <button type="submit" id="agregar-btn" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                        Agregar Cliente
+                    <button type="submit" id="agregar-btn" class="transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                        Agregar cliente
                     </button>
-                    <button type="button" id="guardar-btn" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" style="display:none;">
-                        Guardar Cambios
+                    <button type="button" id="guardar-btn" class="transition duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" style="display:none;">
+                        Guardar cambios
                     </button>
                 </form>
-                
             </div>
-            <div class="mt-8 bg-white p-6 rounded-xl shadow-md animate-slide-in">
-                <h2 class="text-xl font-semibold mb-4">Buscar Clientes</h2>
+            <div class="mx-auto mt-8 bg-gray-200 p-6 rounded-xl shadow-md" style="max-width: 1400px;">
+                <h2 class="text-xl font-semibold mb-4">Lista de clientes</h2>
                 <form id="form-buscar" action="#" method="GET">
-                    <div class="flex mb-4">
-                        <input type="search" name="search" placeholder="Buscar por nombre, documento, etc." class="border h-10 rounded w-full">
-                        <button type="submit" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                    <div class="relative w-96 space-x-4 flex mb-4">
+                        <input type="search" name="search" id="search" placeholder="Buscar por nombre, cedula, etc." class="block w-full p-2 pl-10 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <button type="submit" class="transition duration-300 ease-in-out inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-white bg-gray-800 hover:bg-gray-400 h-9 rounded-md px-3">
+                            <svg id="search-spinner" class="hidden animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="4" fill="none" />
+                                <path fill="white" d="M4 12a8 8 0 018-8v8H4z" />
+                            </svg>
                             Buscar
                         </button>
                     </div>
                 </form>
-                <div class="table-container overflow-x-auto">
+                <div class="table-container  rounded-xl overflow-x-auto">
                     <table id="clientes-table" class="w-full text-left">
-                        <thead class="sticky top-0 bg-gray-200 dark:bg-gray-700">
-                            <tr>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">ID</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Nombre</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Cedula</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Teléfono</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Correo Electrónico</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Dirección</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Estado</th>
-                                <th class="border-b p-4 bg-gray-300 dark:bg-gray-800">Acciones</th>
+                        <thead class="sticky top-0 bg-gray-300 dark:bg-gray-400">
+                            <tr class="bg-gray-300 dark:bg-gray-400">
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">ID</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Nombre</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Cedula</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Teléfono</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Correo electrónico</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Dirección</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Estado</th>
+                                <th class="border-b p-4 bg-gray-500 dark:bg-gray-800">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,21 +82,11 @@
                         </tbody>
                     </table>
                 </div>
-                
             </div>
         </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/scripts/gestion-clientes.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.animate-slide-in').forEach((element, index) => {
-                setTimeout(() => {
-                    element.style.opacity = 1;
-                    element.style.transform = 'scale(1)';
-                }, index * 50);
-            });
-        });
-    </script>
+
 </body>
 </html>

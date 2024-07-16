@@ -30,11 +30,66 @@ function mostrarNotificaciones(productos) {
     modal.style.display = 'block';
 }
 
+async function renderClientesChart() {
+    const ctx = document.getElementById('clientesChart').getContext('2d');
+    const response = await fetch('/api/clientes-mas-compras');
+    const clientesData = await response.json();
+
+    if (!response.ok) {
+        console.error('Error al obtener los datos de los clientes');
+        return;
+    }
+
+    console.log(clientesData); // Log para verificar los datos recibidos
+
+    if (!clientesData.length) {
+        console.warn('No se encontraron datos de clientes');
+        return;
+    }
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: clientesData.map(cliente => cliente.name),
+            datasets: [{
+                label: 'Compras',
+                data: clientesData.map(cliente => cliente.totalPurchases),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            const cliente = clientesData[tooltipItem.dataIndex];
+                            return `${cliente.name} (Cédula: ${cliente.cedula}): ${cliente.totalPurchases}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
 window.onload = function() {
     verificarStockBajo();
     checkAuth();
     renderVentasChart();
     renderProductosChart();
+    renderClientesChart();
 };
 
 document.getElementById('modal-close').onclick = function() {
@@ -71,10 +126,10 @@ async function renderVentasChart() {
         data: {
             labels: ventasData.map(venta => venta.date),
             datasets: [{
-                label: 'Cantidad de Productos Vendidos',
+                label: 'Cantidad de productos vendidos',
                 data: ventasData.map(venta => venta.totalQuantity),
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(229, 255, 0, 0.2)',
+                borderColor: 'rgba(229, 255, 0, 1)',
                 borderWidth: 1
             }]
         },

@@ -3,7 +3,7 @@ const oracledb = require('oracledb');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const { PDFDocument, rgb } = require('pdf-lib');
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const cron = require('node-cron');
@@ -14,41 +14,38 @@ const redis = require('redis');
 const cluster = require('cluster');
 const os = require('os');
 
+
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 const secret = process.env.JWT_SECRET || 'your_secret_key';
 const redisClient = redis.createClient();
-
-const dbConfig = {
-  user: process.env.DB_USER || 'yosti',
-  password: process.env.DB_PASSWORD || '123',
-  connectString: `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${process.env.DB_HOST || 'localhost'})(PORT=${process.env.DB_PORT || 1521}))(CONNECT_DATA=(SERVICE_NAME=${process.env.DB_SERVICE || 'ORCLD'})))`
-};
-
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://57418ktj-3000.use2.devtunnels.ms',
-  'https://webprojectapp-2d5aacce28e6.herokuapp.com'
-];
-
+const allowedOrigins = ['http://localhost:3000', 'https://57418ktj-3000.use2.devtunnels.ms'];
+app.use(bodyParser.json());
 app.use(cors({
   origin: function (origin, callback) {
-    console.log('Origin:', origin); // Log the origin for debugging
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'El CORS policy no permite acceso desde el origen especificado.';
-      console.error(msg);
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
+      // Permitir solicitudes sin origen (como curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+          const msg = 'El CORS policy no permite acceso desde el origen especificado.';
+          return callback(new Error(msg), false);
+      }
+      return callback(null, true);
   }
 }));
 
-app.use(bodyParser.json());
+
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public/comprobantes', express.static(path.join(__dirname, 'public', 'comprobantes')));
 app.use(cookieParser());
 const csrfProtection = csrf({ cookie: true });
+
+const dbConfig = {
+  user: 'YOSTI',
+  password: '123',
+  connectString: 'localhost:1521/ORCLD'
+};
 
 if (cluster.isMaster) {
   const numCPUs = os.cpus().length;
@@ -140,12 +137,14 @@ if (cluster.isMaster) {
     }
   });
 
-  // Example of a protected route
-  app.get('/api/protected', authenticateToken, csrfProtection, cache, (req, res) => {
-    res.json({ message: 'This is a protected route', csrfToken: req.csrfToken() });
+  // Proteger las rutas con autenticación
+  app.get('/dashboard.html', authenticateToken, csrfProtection, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
   });
 
-
+  app.get('/inventario.html', authenticateToken, csrfProtection, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'inventario.html'));
+  });
 
 
 
@@ -198,8 +197,7 @@ app.get('/clientes', async (req, res) => {
       };
     });
 
-    console.log(clientes); // Verifica aquí el formato de los datos
-
+   
     res.json(clientes);
   } catch (err) {
     console.error(err);
@@ -292,6 +290,51 @@ app.delete('/clientes/:id', async (req, res) => {
     res.status(500).send({ message: 'Error al eliminar el cliente' });
   }
 });
+
+// Endpoint para obtener los clientes que más compran
+app.get('/api/clientes-mas-compras', async (req, res) => {
+  try {
+      const query = `
+          SELECT 
+              c.NOMBRE AS name, 
+              c.DOCUMENTO_IDENTIDAD AS cedula,
+              SUM(dv.CANTIDAD) AS totalPurchases
+          FROM 
+              VENTAS v
+          JOIN 
+              CLIENTES c ON v.CLIENTE_ID = c.CLIENTE_ID
+          JOIN 
+              DETALLE_VENTAS dv ON v.VENTA_ID = dv.VENTA_ID
+          GROUP BY 
+              c.NOMBRE, c.DOCUMENTO_IDENTIDAD
+          ORDER BY 
+              totalPurchases DESC
+          FETCH FIRST 10 ROWS ONLY
+      `;
+      const result = await executeQuery(query, {}, {}, true);
+     
+      const formattedResult = result.rows.map(row => ({
+          name: row.NAME,
+          cedula: row.CEDULA,
+          totalPurchases: row.TOTALPURCHASES
+      }));
+
+      
+
+      res.json(formattedResult);
+  } catch (err) {
+      console.error('Error al obtener los datos de los clientes:', err);
+      res.status(500).json({ error: 'Error al obtener los datos de los clientes' });
+  }
+});
+
+
+
+
+
+
+
+
 
 
 
@@ -621,40 +664,48 @@ app.post('/register-sale', async (req, res) => {
       });
     }
 
+    // Generar el PDF mejorado
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage();
     const { width, height } = page.getSize();
     const titleFontSize = 18;
     const fontSize = 12;
     const lineHeight = 14;
-    let y = height - titleFontSize - 20;
+    const margin = 50;
+    let y = height - margin;
+
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    page.setFont(font);
 
     page.drawText('Comprobante de Venta', {
-      x: 50,
+      x: margin,
       y,
       size: titleFontSize,
+      font: boldFont,
       color: rgb(0, 0, 0),
     });
 
-    y -= titleFontSize + 10;
+    y -= titleFontSize + 20;
 
     const clientInfo = `
-Cliente: ${client.name}
-Documento de Identidad: ${client.document}
-Teléfono: ${client.phone}
-Dirección: ${client.address}
-Correo Electrónico: ${client.email}`;
+      Cliente: ${client.name}
+      Documento de Identidad: ${client.document}
+      Teléfono: ${client.phone}
+      Dirección: ${client.address}
+      Correo Electrónico: ${client.email}`;
 
     const clientLines = clientInfo.trim().split('\n');
     clientLines.forEach(line => {
-      page.drawText(line, { x: 50, y, size: fontSize, color: rgb(0, 0, 0) });
+      page.drawText(line, { x: margin, y, size: fontSize, color: rgb(0, 0, 0) });
       y -= lineHeight;
     });
 
     y -= lineHeight;
 
     page.drawText('Productos Vendidos:', {
-      x: 50,
+      x: margin,
       y,
       size: fontSize,
       color: rgb(0, 0, 0),
@@ -665,7 +716,7 @@ Correo Electrónico: ${client.email}`;
     products.forEach(product => {
       const productInfo = `- ${product.description}: ${product.quantity} x ${product.price} = ${product.quantity * product.price}`;
       page.drawText(productInfo, {
-        x: 50,
+        x: margin,
         y,
         size: fontSize,
         color: rgb(0, 0, 0),
@@ -676,10 +727,11 @@ Correo Electrónico: ${client.email}`;
     y -= fontSize;
 
     page.drawText(`Total: ${total}`, {
-      x: 50,
+      x: margin,
       y,
       size: fontSize,
       color: rgb(0, 0, 0),
+      font: boldFont,
     });
 
     const pdfBytes = await pdfDoc.save();
@@ -691,6 +743,7 @@ Correo Electrónico: ${client.email}`;
 
     const pdfPath = path.join(comprobanteDir, `comprobante_${saleId}.pdf`);
     fs.writeFileSync(pdfPath, pdfBytes);
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -702,8 +755,46 @@ Correo Electrónico: ${client.email}`;
     const mailOptions = {
       from: 'yostiancortes123@gmail.com',
       to: client.email,
-      subject: 'Comprobante de Venta',
-      text: 'Adjunto encontrarás el comprobante de tu compra.',
+      subject: 'Comprobante de Venta - Tecshop',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #4CAF50;">Comprobante de Venta</h2>
+          <p>Estimado <strong>${client.name}</strong>,</p>
+          <p>Gracias por su compra en Tecshop. A continuación, encontrará los detalles de su venta:</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Fecha:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${date}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Método de Pago:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${payment}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Vendedor:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${seller}</td>
+            </tr>
+          </table>
+          <h3 style="color: #4CAF50;">Productos Vendidos:</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            ${products.map(product => `
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd;">${product.description}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${product.quantity} x ${product.price}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${product.quantity * product.price}</td>
+              </tr>
+            `).join('')}
+            <tr>
+              <td colspan="2" style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total:</td>
+              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${total}</td>
+            </tr>
+          </table>
+          <p>Adjunto encontrará el comprobante de su compra en formato PDF.</p>
+          <p>Atentamente,<br>El equipo de Tecshop</p>
+          <hr style="border-top: 1px solid #ddd;">
+          <p style="font-size: 0.9em;">Tecshop<br>Dirección: Calle Falsa 123, Ciudad, País<br>Teléfono: (123) 456-7890<br>Correo electrónico: contacto@tecshop.com</p>
+        </div>
+      `,
       attachments: [
         {
           filename: `comprobante_${saleId}.pdf`,
@@ -720,7 +811,7 @@ Correo Electrónico: ${client.email}`;
       }
     });
 
-     await actualizarClasificacionCliente(clientId);
+    await actualizarClasificacionCliente(clientId);
 
     const fileUrl = `/public/comprobantes/comprobante_${saleId}.pdf`;
     res.status(200).send({ message: 'Venta registrada exitosamente', fileUrl });
@@ -729,7 +820,6 @@ Correo Electrónico: ${client.email}`;
     res.status(500).send({ message: 'Error al registrar la venta' });
   }
 });
-
 
 
 
@@ -1139,67 +1229,173 @@ app.get('/get-client-by-doc/:doc', async (req, res) => {
   }
 });
 
+
+
+
 // Endpoint para registrar un envío
 // Endpoint para registrar un envío
 app.post('/register-shipment', async (req, res) => {
-  const { cliente_documento, cliente_nombre, cliente_direccion, cliente_telefono, direccion_destino, costo_envio, estado_envio, productos } = req.body;
+  const { cliente_documento, cliente_nombre, cliente_direccion, cliente_telefono, direccion_destino, costo_envio, estado_envio, productos, cliente_correo } = req.body;
+
   if (!cliente_documento || !direccion_destino || !costo_envio || !estado_envio || !productos || productos.length === 0) {
-      return res.status(400).send({ error: "All fields are required" });
+    return res.status(400).send({ error: "Todos los campos son obligatorios" });
   }
 
   const connection = await oracledb.getConnection(dbConfig);
   try {
-      const result = await connection.execute(
-          `INSERT INTO ENVIOS (ENVIO_ID, CLIENTE_DOCUMENTO, CLIENTE_NOMBRE, CLIENTE_DIRECCION, CLIENTE_TELEFONO, DIRECCION_DESTINO, COSTO_ENVIO, ESTADO_ENVIO, FECHA) 
-           VALUES (SEQ_ENVIO_ID.NEXTVAL, :cliente_documento, :cliente_nombre, :cliente_direccion, :cliente_telefono, :direccion_destino, :costo_envio, :estado_envio, SYSDATE) 
-           RETURNING ENVIO_ID INTO :envio_id`, 
-          {
-              cliente_documento,
-              cliente_nombre,
-              cliente_direccion,
-              cliente_telefono,
-              direccion_destino,
-              costo_envio,
-              estado_envio,
-              envio_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-          },
-          { autoCommit: false }
+    // Verificar si el cliente existe
+    const clienteResult = await connection.execute(
+      `SELECT * FROM CLIENTES WHERE DOCUMENTO_IDENTIDAD = :documento`,
+      { documento: cliente_documento }
+    );
+
+    if (clienteResult.rows.length === 0) {
+      // Registrar el cliente si no existe
+      await connection.execute(
+        `INSERT INTO CLIENTES (CLIENTE_ID, NOMBRE, DOCUMENTO_IDENTIDAD, TELEFONO, CORREO_ELECTRONICO, DIRECCION, ESTADO) 
+         VALUES (CLIENTE_ID_SEQ.NEXTVAL, :nombre, :documento, :telefono, :correo, :direccion, 'activo')`,
+        {
+          nombre: cliente_nombre,
+          documento: cliente_documento,
+          telefono: cliente_telefono,
+          correo: cliente_correo,
+          direccion: cliente_direccion
+        },
+        { autoCommit: false }
+      );
+      console.log('Cliente registrado:', cliente_nombre);
+    } else {
+      console.log('Cliente ya existe:', cliente_nombre);
+    }
+
+    const result = await connection.execute(
+      `INSERT INTO ENVIOS (ENVIO_ID, CLIENTE_DOCUMENTO, CLIENTE_NOMBRE, CLIENTE_DIRECCION, CLIENTE_TELEFONO, DIRECCION_DESTINO, COSTO_ENVIO, ESTADO_ENVIO, FECHA) 
+       VALUES (SEQ_ENVIO_ID.NEXTVAL, :cliente_documento, :cliente_nombre, :cliente_direccion, :cliente_telefono, :direccion_destino, :costo_envio, :estado_envio, SYSDATE) 
+       RETURNING ENVIO_ID INTO :envio_id`,
+      {
+        cliente_documento,
+        cliente_nombre,
+        cliente_direccion,
+        cliente_telefono,
+        direccion_destino,
+        costo_envio,
+        estado_envio,
+        envio_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+      },
+      { autoCommit: false }
+    );
+
+    const envioId = result.outBinds.envio_id[0];
+    console.log('Envío registrado con ID:', envioId);
+
+    let totalProductos = 0;
+
+    for (const producto of productos) {
+      const productResult = await connection.execute(
+        `SELECT PRECIO FROM PRODUCTOS WHERE PRODUCTO_ID = :producto_id`,
+        { producto_id: producto.producto_id }
       );
 
-      const envioId = result.outBinds.envio_id[0];
-
-      for (const producto of productos) {
-          await connection.execute(
-              `INSERT INTO DETALLE_VENTAS (VENTA_ID, PRODUCTO_ID, CANTIDAD, PRECIO) 
-               VALUES (:envioId, :producto_id, :cantidad, (SELECT PRECIO FROM PRODUCTOS WHERE PRODUCTO_ID = :producto_id))`,
-              {
-                  envioId,
-                  producto_id: producto.producto_id,
-                  cantidad: producto.cantidad
-              },
-              { autoCommit: false }
-          );
-
-          await connection.execute(
-              `UPDATE PRODUCTOS SET STOCK = STOCK - :cantidad WHERE PRODUCTO_ID = :producto_id`,
-              {
-                  cantidad: producto.cantidad,
-                  producto_id: producto.producto_id
-              },
-              { autoCommit: false }
-          );
+      if (productResult.rows.length === 0) {
+        console.error('Producto no encontrado:', producto.producto_id);
+        continue;
       }
 
-      await connection.commit();
-      res.status(200).send({ message: "Shipment registered successfully" });
+      const precio = productResult.rows[0][0];
+      totalProductos += precio * producto.cantidad;
+
+      await connection.execute(
+        `INSERT INTO DETALLE_VENTAS (VENTA_ID, PRODUCTO_ID, CANTIDAD, PRECIO) 
+         VALUES (:envioId, :producto_id, :cantidad, :precio)`,
+        {
+          envioId,
+          producto_id: producto.producto_id,
+          cantidad: producto.cantidad,
+          precio: precio
+        },
+        { autoCommit: false }
+      );
+      console.log('Producto agregado a la venta:', producto.producto_id);
+
+      await connection.execute(
+        `UPDATE PRODUCTOS SET STOCK = STOCK - :cantidad WHERE PRODUCTO_ID = :producto_id`,
+        {
+          cantidad: producto.cantidad,
+          producto_id: producto.producto_id
+        },
+        { autoCommit: false }
+      );
+      console.log('Stock actualizado para producto:', producto.producto_id);
+    }
+
+    const totalEnvio = totalProductos + costo_envio;
+
+    await connection.commit();
+    console.log('Transacción commit realizada');
+
+    // Enviar correo electrónico al cliente
+    const mailOptions = {
+      from: 'yostiancortes123@gmail.com',
+      to: cliente_correo,
+      subject: 'Confirmación de Envío - Tecshop',
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #4CAF50;">Confirmación de Envío</h2>
+          <p>Estimado <strong>${cliente_nombre}</strong>,</p>
+          <p>Nos complace informarle que su envío ha sido registrado exitosamente. A continuación, encontrará los detalles de su envío:</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">ID del Envío:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${envioId}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Dirección de Destino:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${direccion_destino}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Costo de Envío:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${costo_envio}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Costo de Productos:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${totalProductos}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Total:</td>
+              <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${totalEnvio}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">Estado del Envío:</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${estado_envio}</td>
+            </tr>
+          </table>
+          <p>Gracias por su preferencia. Si tiene alguna pregunta o necesita más información, no dude en contactarnos.</p>
+          <p>Atentamente,<br>El equipo de Tecshop</p>
+          <hr style="border-top: 1px solid #ddd;">
+          <p style="font-size: 0.9em;">Tecshop<br>Dirección: Calle 12, La Sabana, Costa Rica<br>Teléfono: (123) 456-7890<br>Correo electrónico: contacto@Tecshop.com</p>
+        </div>
+      `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error al enviar el correo:', error);
+      } else {
+        console.log('Correo enviado:', info.response);
+      }
+    });
+
+    res.status(200).send({ message: "Envío registrado y correo enviado exitosamente" });
   } catch (error) {
-      await connection.rollback();
-      console.error('Error registering shipment:', error);
-      res.status(500).send({ error: "Error registering shipment" });
+    await connection.rollback();
+    console.error('Error registrando el envío:', error);
+    res.status(500).send({ error: "Error registrando el envío" });
   } finally {
-      await connection.close();
+    await connection.close();
   }
 });
+
+
 
 
 // Endpoint para obtener todos los envíos
@@ -1219,6 +1415,35 @@ app.get('/shipments', async (req, res) => {
   }
 });
 
+
+
+
+
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'yostiancortes123@gmail.com',
+    pass: 'hlal jedp pnng pzuw'  // Asegúrate de reemplazar esto con tu contraseña real
+  }
+});
+
+function enviarCorreo(clienteCorreo, asunto, mensaje) {
+  const mailOptions = {
+    from: 'yostiancortes123@gmail.com',
+    to: clienteCorreo,
+    subject: asunto,
+    text: mensaje
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error al enviar el correo:', error);
+    } else {
+      console.log('Correo enviado:', info.response);
+    }
+  });
+}
 
 
 // Endpoint para obtener un envío por ID
@@ -1261,77 +1486,88 @@ app.put('/shipments/:id', async (req, res) => {
 
   const connection = await oracledb.getConnection(dbConfig);
   try {
-    // Actualizar información del envío
-    await connection.execute(
-      `UPDATE ENVIOS 
-       SET CLIENTE_DOCUMENTO = :cliente_documento,
-           CLIENTE_NOMBRE = :cliente_nombre,
-           CLIENTE_DIRECCION = :cliente_direccion,
-           CLIENTE_TELEFONO = :cliente_telefono,
-           DIRECCION_DESTINO = :direccion_destino,
-           COSTO_ENVIO = :costo_envio,
-           ESTADO_ENVIO = :estado_envio
-       WHERE ENVIO_ID = :id`,
-      {
-        cliente_documento,
-        cliente_nombre,
-        cliente_direccion,
-        cliente_telefono,
-        direccion_destino,
-        costo_envio,
-        estado_envio,
-        id
-      },
-      { autoCommit: false }
-    );
+    // Si solo se envía el estado_envio, solo actualizar el estado
+    if (estado_envio && !cliente_documento && !cliente_nombre && !cliente_direccion && !cliente_telefono && !direccion_destino && !costo_envio && !productos) {
+      await connection.execute(
+        `UPDATE ENVIOS 
+         SET ESTADO_ENVIO = :estado_envio
+         WHERE ENVIO_ID = :id`,
+        {
+          estado_envio,
+          id
+        },
+        { autoCommit: true }
+      );
+    } else {
+      // Actualizar información del envío
+      await connection.execute(
+        `UPDATE ENVIOS 
+         SET CLIENTE_DOCUMENTO = :cliente_documento,
+             CLIENTE_NOMBRE = :cliente_nombre,
+             CLIENTE_DIRECCION = :cliente_direccion,
+             CLIENTE_TELEFONO = :cliente_telefono,
+             DIRECCION_DESTINO = :direccion_destino,
+             COSTO_ENVIO = :costo_envio,
+             ESTADO_ENVIO = :estado_envio
+         WHERE ENVIO_ID = :id`,
+        {
+          cliente_documento,
+          cliente_nombre,
+          cliente_direccion,
+          cliente_telefono,
+          direccion_destino,
+          costo_envio,
+          estado_envio,
+          id
+        },
+        { autoCommit: false }
+      );
 
-    
-// Eliminar detalles anteriores del envío
-await connection.execute(
-  `DELETE FROM DETALLE_VENTAS WHERE VENTA_ID = :id`,
-  { id },
-  { autoCommit: false }
-);
-
-// Actualizar stock de productos
-for (const producto of productos) {
-  await connection.execute(
-    `UPDATE PRODUCTOS SET STOCK = STOCK + :cantidad WHERE PRODUCTO_ID = :producto_id`,
-    {
-      cantidad: producto.cantidad,
-      producto_id: producto.producto_id
-    },
-    { autoCommit: false }
-  );
-}
-
-
-   // Insertar nuevos detalles del envío
-for (const producto of productos) {
-  await connection.execute(
-    `INSERT INTO DETALLE_VENTAS (VENTA_ID, PRODUCTO_ID, CANTIDAD, PRECIO) 
-     VALUES (:envioId, :producto_id, :cantidad, (SELECT PRECIO FROM PRODUCTOS WHERE PRODUCTO_ID = :producto_id))`,
-    {
-      envioId: id,
-      producto_id: producto.producto_id,
-      cantidad: producto.cantidad
-    },
-    { autoCommit: false }
-  );
-
+      // Eliminar detalles anteriores del envío
+      await connection.execute(
+        `DELETE FROM DETALLE_VENTAS WHERE VENTA_ID = :id`,
+        { id },
+        { autoCommit: false }
+      );
 
       // Actualizar stock de productos
-  await connection.execute(
-    `UPDATE PRODUCTOS SET STOCK = STOCK - :cantidad WHERE PRODUCTO_ID = :producto_id`,
-    {
-      cantidad: producto.cantidad,
-      producto_id: producto.producto_id
-    },
-    { autoCommit: false }
-  );
-}
+      for (const producto of productos) {
+        await connection.execute(
+          `UPDATE PRODUCTOS SET STOCK = STOCK + :cantidad WHERE PRODUCTO_ID = :producto_id`,
+          {
+            cantidad: producto.cantidad,
+            producto_id: producto.producto_id
+          },
+          { autoCommit: false }
+        );
+      }
 
-    await connection.commit();
+      // Insertar nuevos detalles del envío
+      for (const producto of productos) {
+        await connection.execute(
+          `INSERT INTO DETALLE_VENTAS (VENTA_ID, PRODUCTO_ID, CANTIDAD, PRECIO) 
+           VALUES (:envioId, :producto_id, :cantidad, (SELECT PRECIO FROM PRODUCTOS WHERE PRODUCTO_ID = :producto_id))`,
+          {
+            envioId: id,
+            producto_id: producto.producto_id,
+            cantidad: producto.cantidad
+          },
+          { autoCommit: false }
+        );
+
+        // Actualizar stock de productos
+        await connection.execute(
+          `UPDATE PRODUCTOS SET STOCK = STOCK - :cantidad WHERE PRODUCTO_ID = :producto_id`,
+          {
+            cantidad: producto.cantidad,
+            producto_id: producto.producto_id
+          },
+          { autoCommit: false }
+        );
+      }
+
+      await connection.commit();
+    }
     res.status(200).send({ message: "Shipment updated successfully" });
   } catch (error) {
     await connection.rollback();
