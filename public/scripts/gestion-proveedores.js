@@ -116,9 +116,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch(`/api/proveedores${searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : ''}`);
             const providers = await response.json();
             tbody.innerHTML = '';
-            providers.forEach(proveedor => {
+            providers.forEach((proveedor, index) => {
                 const tr = document.createElement('tr');
-                tr.classList.add('bg-gray-100','border-b', 'transition-colors', 'hover:bg-muted/50', 'data-[state=selected]:bg-muted');
+                tr.classList.add('bg-gray-100', 'border-b', 'transition-colors', 'hover:bg-muted/50', 'data-[state=selected]:bg-muted', 'transition-opacity', 'duration-500', 'opacity-0');
                 tr.innerHTML = `
                     <td class="p-4 align-middle font-medium">${proveedor.NOMBRE || ''}</td>
                     <td class="p-4 align-middle">${proveedor.TELEFONO || ''}</td>
@@ -135,6 +135,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     </td>
                 `;
                 tbody.appendChild(tr);
+                setTimeout(() => {
+                    tr.classList.remove('opacity-0');
+                    tr.classList.add('opacity-100');
+                }, index * 100);
             });
 
             // funcionalidad para los botones de editar, dar de baja y ver

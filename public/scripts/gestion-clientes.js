@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = formBuscar.querySelector('input[name="search"]');
     const agregarBtn = document.getElementById('agregar-btn');
     const guardarBtn = document.getElementById('guardar-btn');
-
     const searchSpinner = document.getElementById('search-spinner');
 
     if (formBuscar) {
@@ -137,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.innerHTML = '';
             clientes.forEach((cliente, index) => {
                 let fila = document.createElement('tr');
-                fila.classList.add('hidden-row');
+                fila.classList.add('transition-opacity', 'duration-500', 'opacity-0');
                 fila.innerHTML = `
                     <td class="border-b p-4">${cliente.id}</td>
                     <td class="border-b p-4">${cliente.nombre}</td>
@@ -153,8 +152,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 tbody.appendChild(fila);
                 setTimeout(() => {
-                    fila.classList.add('visible-row');
-                    fila.classList.remove('hidden-row');
+                    fila.classList.remove('opacity-0');
+                    fila.classList.add('opacity-100');
                 }, index * 100);
             });
         } else {

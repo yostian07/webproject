@@ -211,8 +211,9 @@ async function loadShipments() {
     pendingShipmentsTableBody.innerHTML = '';
     completedShipmentsTableBody.innerHTML = '';
 
-    shipments.forEach(shipment => {
+    shipments.forEach((shipment, index) => {
       const row = document.createElement('tr');
+      row.classList.add('transition-opacity', 'duration-500', 'opacity-0');
       if (shipment.ESTADO_ENVIO === 'pendiente') {
         row.innerHTML = `
           <td class="border px-4 py-2">${shipment.ENVIO_ID}</td>
@@ -234,6 +235,10 @@ async function loadShipments() {
         `;
         completedShipmentsTableBody.appendChild(row);
       }
+      setTimeout(() => {
+        row.classList.remove('opacity-0');
+        row.classList.add('opacity-100');
+      }, index * 100);
     });
 
     document.querySelectorAll('.view-button').forEach(button => {
