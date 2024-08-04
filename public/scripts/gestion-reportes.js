@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             element.style.opacity = 1;
             element.style.transform = 'scale(1)';
-        }, index * 75); // Ajusta el retraso para rapidez y suavidad
+        }, index * 75); 
     });
 });
 
@@ -84,7 +84,7 @@ function exportToCSV(datos) {
     let csvContent = keys.join(',') + '\n';
 
     datos.forEach(row => {
-        const values = keys.map(key => `"${row[key]}"`); // Envolviendo cada valor entre comillas para manejar comas en datos
+        const values = keys.map(key => `"${row[key]}"`); 
         csvContent += values.join(',') + '\n';
     });
 

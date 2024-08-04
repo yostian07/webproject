@@ -11,7 +11,7 @@ async function fetchCategorias() {
       const categorias = await response.json();
 
       const selectCategoria = document.getElementById('filtrar-categoria');
-      selectCategoria.innerHTML = '<option value="">Todas las Categorías</option>'; // Clear existing options
+      selectCategoria.innerHTML = '<option value="">Todas las Categorías</option>'; 
       categorias.forEach(categoria => {
           const option = document.createElement('option');
           option.value = categoria;
@@ -124,13 +124,12 @@ if (search) {
       e.preventDefault();
       // Mostrar el spinner
       searchSpinner.classList.remove('hidden');
-      // Aquí puedes agregar tu lógica para buscar clientes
-
-      // Simulación de búsqueda (ejemplo: usando setTimeout)
+      
+   
       setTimeout(() => {
-          // Ocultar el spinner después de que la búsqueda se complete
+          
           searchSpinner.classList.add('hidden');
-      }, 1000); // Cambia el tiempo según tus necesidades
+      }, 1000); 
   }); 
 }
 

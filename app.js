@@ -142,8 +142,8 @@ if (cluster.isMaster) {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
   });
 
-  app.get('/inventario.html', authenticateToken, csrfProtection, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'inventario.html'));
+  app.get('/gestion-inventario.html', authenticateToken, csrfProtection, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'gestion-inventario.html'));
   });
 
 
@@ -293,40 +293,47 @@ app.delete('/clientes/:id', async (req, res) => {
 
 // Endpoint para obtener los clientes que más compran
 app.get('/api/clientes-mas-compras', async (req, res) => {
+  let connection;
+
   try {
-      const query = `
-          SELECT 
-              c.NOMBRE AS name, 
-              c.DOCUMENTO_IDENTIDAD AS cedula,
-              SUM(dv.CANTIDAD) AS totalPurchases
-          FROM 
-              VENTAS v
-          JOIN 
-              CLIENTES c ON v.CLIENTE_ID = c.CLIENTE_ID
-          JOIN 
-              DETALLE_VENTAS dv ON v.VENTA_ID = dv.VENTA_ID
-          GROUP BY 
-              c.NOMBRE, c.DOCUMENTO_IDENTIDAD
-          ORDER BY 
-              totalPurchases DESC
-          FETCH FIRST 10 ROWS ONLY
-      `;
-      const result = await executeQuery(query, {}, {}, true);
-     
-      const formattedResult = result.rows.map(row => ({
-          name: row.NAME,
-          cedula: row.CEDULA,
-          totalPurchases: row.TOTALPURCHASES
-      }));
+    const { month, year } = req.query;
 
-      
+    connection = await oracledb.getConnection(dbConfig);
 
-      res.json(formattedResult);
+    const result = await connection.execute(
+      `BEGIN obtener_clientes_mas_compras_mes(:month, :year, :cursor); END;`,
+      {
+        month: parseInt(month, 10),
+        year: parseInt(year, 10),
+        cursor: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+      }
+    );
+
+    const resultSet = result.outBinds.cursor;
+    const rows = await resultSet.getRows();
+    await resultSet.close();
+
+    const clientesMasCompras = rows.map(row => ({
+      name: row[0],
+      cedula: row[1],
+      totalPurchases: row[2]
+    }));
+
+    res.json(clientesMasCompras);
   } catch (err) {
-      console.error('Error al obtener los datos de los clientes:', err);
-      res.status(500).json({ error: 'Error al obtener los datos de los clientes' });
+    console.error(err);
+    res.status(500).send('Error al obtener datos');
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error(err);
+      }
+    }
   }
 });
+
 
 
 
@@ -748,7 +755,7 @@ app.post('/register-sale', async (req, res) => {
       service: 'gmail',
       auth: {
         user: 'yostiancortes123@gmail.com',
-        pass: 'hlal jedp pnng pzuw'
+        pass: 'nrkl dsyc zemq yboy'
       }
     });
 
@@ -850,12 +857,16 @@ cron.schedule('0 0 * * *', async () => {
 
 app.get('/api/ventas-registradas', async (req, res) => {
   try {
+    const { month, year } = req.query;
+
     const salesResult = await executeQuery(
       `SELECT TO_CHAR(VENTAS.FECHA, 'YYYY-MM-DD') AS FECHA, SUM(DETALLE_VENTAS.CANTIDAD) AS TOTAL_CANTIDAD
        FROM VENTAS
        JOIN DETALLE_VENTAS ON VENTAS.VENTA_ID = DETALLE_VENTAS.VENTA_ID
+       WHERE EXTRACT(MONTH FROM VENTAS.FECHA) = :month AND EXTRACT(YEAR FROM VENTAS.FECHA) = :year
        GROUP BY TO_CHAR(VENTAS.FECHA, 'YYYY-MM-DD')
-       ORDER BY FECHA`
+       ORDER BY FECHA`,
+      { month, year }
     );
 
     const sales = salesResult.rows.map(row => ({
@@ -870,7 +881,9 @@ app.get('/api/ventas-registradas', async (req, res) => {
   }
 });
 
-// ENDPOINT PARA GENERAR REPORTES
+
+
+
 // ENDPOINT PARA GENERAR REPORTES
 app.get('/generar-reporte', async (req, res) => {
   const tipo = req.query.tipo;
@@ -966,11 +979,15 @@ app.get('/api/productos-mas-vendidos', async (req, res) => {
   let connection;
 
   try {
+    const { month, year } = req.query;
+
     connection = await oracledb.getConnection(dbConfig);
 
     const result = await connection.execute(
-      `BEGIN obtener_productos_mas_vendidos(:cursor); END;`,
+      `BEGIN obtener_productos_mas_vendidos_mes(:month, :year, :cursor); END;`,
       {
+        month: parseInt(month, 10),
+        year: parseInt(year, 10),
         cursor: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
       }
     );
@@ -998,6 +1015,10 @@ app.get('/api/productos-mas-vendidos', async (req, res) => {
     }
   }
 });
+
+
+
+
 
 
 app.get('/transacciones', async (req, res) => {
@@ -1233,7 +1254,6 @@ app.get('/get-client-by-doc/:doc', async (req, res) => {
 
 
 // Endpoint para registrar un envío
-// Endpoint para registrar un envío
 app.post('/register-shipment', async (req, res) => {
   const { cliente_documento, cliente_nombre, cliente_direccion, cliente_telefono, direccion_destino, costo_envio, estado_envio, productos, cliente_correo } = req.body;
 
@@ -1424,7 +1444,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'yostiancortes123@gmail.com',
-    pass: 'hlal jedp pnng pzuw'  // Asegúrate de reemplazar esto con tu contraseña real
+    pass: 'nrkl dsyc zemq yboy'  
   }
 });
 

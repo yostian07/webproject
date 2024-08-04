@@ -38,14 +38,14 @@
         const canvas = document.getElementById('rainfall');
         const ctx = canvas.getContext('2d');
 
-        // Set canvas size to match window size
+       
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Create an array to store the raindrops
+       
         const raindrops = [];
 
-        // Function to create a new raindrop
+      
         function createRaindrop() {
             const x = Math.random() * canvas.width;
             const y = -5;
@@ -55,7 +55,7 @@
             raindrops.push({ x, y, speed, length });
         }
 
-        // Function to update the raindrops' positions
+        
         function updateRaindrops() {
             for (let i = 0; i < raindrops.length; i++) {
                 const raindrop = raindrops[i];
@@ -69,7 +69,7 @@
             }
         }
 
-        // Function to draw the raindrops
+       
         function drawRaindrops() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -86,7 +86,6 @@
             }
         }
 
-        // Function to animate the raindrops
         function animate() {
             createRaindrop();
             updateRaindrops();

@@ -215,11 +215,11 @@ function resetSaleForm() {
   document.getElementById('date').value = '';
   document.getElementById('seller').value = '';
 
-  // Reset product table
+
   const productTable = document.getElementById('product-table');
   productTable.innerHTML = ''; // Esto eliminará todas las filas de la tabla de productos
 
-  // Reset payment method
+  
   document.querySelectorAll('input[name="payment"]').forEach(radio => {
     radio.checked = false;
   });

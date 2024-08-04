@@ -206,9 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('nombre').value = data.nombre;
                 document.getElementById('documento_identidad').value = data.documento_identidad;
                 document.getElementById('telefono').value = data.telefono;
-                document.getElementById('correo_electronico').value = data.correo_electronico; // Correo Electrónico
-                document.getElementById('direccion').value = data.direccion; // Dirección
-                document.getElementById('estado').value = data.estado; // Estado
+                document.getElementById('correo_electronico').value = data.correo_electronico; 
+                document.getElementById('direccion').value = data.direccion; 
+                document.getElementById('estado').value = data.estado; 
 
                 agregarBtn.style.display = 'none';
                 guardarBtn.style.display = 'inline-block';
