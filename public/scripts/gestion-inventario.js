@@ -1,8 +1,35 @@
-document.addEventListener("DOMContentLoaded", function() {
-  fetchCategorias();
-  fetchProductos();
-  fetchTransacciones();
-});
+document.addEventListener("DOMContentLoaded", async function() {
+    const token = localStorage.getItem('authToken');
+  
+    if (!token) {
+      // Si no hay token, redirige al login
+      window.location.href = 'index.html';
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:3000/inventario.html', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+  
+      if (response.status === 401) {
+        // Si no está autorizado, redirige al login
+        window.location.href = 'login.html';
+        return;
+      }
+  
+      // Solo continuamos si la respuesta está autorizada
+      fetchCategorias();
+      fetchProductos();
+      fetchTransacciones();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al cargar la página. Por favor, inténtelo de nuevo más tarde.');
+    }
+  });
 
 async function fetchCategorias() {
   try {

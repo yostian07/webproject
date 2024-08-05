@@ -16,9 +16,17 @@ const os = require('os');
 
 
 
+
+
+
+
+
+
+
+
 const app = express();
 const port = process.env.PORT || 3000;
-const secret = process.env.JWT_SECRET || 'your_secret_key';
+const secret = process.env.JWT_SECRET || 'Mjk4OWJlNzctYWVkYi00ZTk5LTgzMTgtNzM0MGI3ZmQ5MzBl';
 const redisClient = redis.createClient();
 const allowedOrigins = ['http://localhost:3000', 'https://57418ktj-3000.use2.devtunnels.ms'];
 app.use(bodyParser.json());
@@ -33,6 +41,51 @@ app.use(cors({
       return callback(null, true);
   }
 }));
+
+const authenticateToken = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, secret, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const connection = await oracledb.getConnection(dbConfig);
+    const result = await connection.execute(
+      `SELECT * FROM users WHERE username = :username AND password = :password`,
+      [username, password]
+    );
+
+    await connection.close();
+
+    if (result.rows.length > 0) {
+      const user = { username };
+      const accessToken = jwt.sign(user, secret, { expiresIn: '1h' });
+      res.json({ success: true, message: 'Login successful', accessToken });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid username or password' });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+
+// Protege las rutas
+app.use('/inventario.html', authenticateToken);
+app.use('/envios.html', authenticateToken);
+app.use('/proveedores.html', authenticateToken);
+app.use('/clientes.html', authenticateToken);
+app.use('/reportes.html', authenticateToken);
+app.use('/ventas.html', authenticateToken);
 
 
 
@@ -84,17 +137,10 @@ if (cluster.isMaster) {
     }
   }
 
-  const authenticateToken = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1];
-    if (!token) return res.sendStatus(401);
 
-    jwt.verify(token, secret, (err, user) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
-    });
-  };
 
+  
+ 
   const cache = (req, res, next) => {
     const key = `__express__${req.originalUrl || req.url}`;
     redisClient.get(key, (err, data) => {
@@ -112,31 +158,7 @@ if (cluster.isMaster) {
     });
   };
 
-  app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-
-    try {
-      const connection = await oracledb.getConnection(dbConfig);
-      const result = await connection.execute(
-        `SELECT * FROM users WHERE username = :username AND password = :password`,
-        [username, password]
-      );
-
-      await connection.close();
-
-      if (result.rows.length > 0) {
-        const user = { username };
-        const accessToken = jwt.sign(user, secret, { expiresIn: '1h' });
-        res.json({ success: true, message: 'Login successful', accessToken });
-      } else {
-        res.status(401).json({ success: false, message: 'Invalid username or password' });
-      }
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: 'Internal server error' });
-    }
-  });
-
+  
   // Proteger las rutas con autenticación
   app.get('/dashboard.html', authenticateToken, csrfProtection, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
@@ -145,6 +167,10 @@ if (cluster.isMaster) {
   app.get('/gestion-inventario.html', authenticateToken, csrfProtection, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'gestion-inventario.html'));
   });
+  app.get('/gestion-clientes.html', authenticateToken, csrfProtection, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'gestion-clientes.html'));
+  });
+
 
 
 

@@ -1,17 +1,48 @@
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.animate-slide-in').forEach((element, index) => {
-        setTimeout(() => {
-            element.style.opacity = 1;
-            element.style.transform = 'scale(1)';
-        }, index * 75); 
-    });
+document.addEventListener('DOMContentLoaded', async function() {
+    const token = localStorage.getItem('authToken');
+
+    if (!token) {
+        // Si no hay token, redirige al login
+        window.location.href = 'index.html';
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/reportes.html', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.status === 401) {
+            // Si no está autorizado, redirige al login
+            window.location.href = 'index.html';
+            return;
+        }
+
+        document.querySelectorAll('.animate-slide-in').forEach((element, index) => {
+            setTimeout(() => {
+                element.style.opacity = 1;
+                element.style.transform = 'scale(1)';
+            }, index * 75); 
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar la página. Por favor, inténtelo de nuevo más tarde.');
+    }
 });
 
 let datosReporte = [];
 
 async function generarReporte(tipo) {
     try {
-        const response = await fetch(`/generar-reporte?tipo=${tipo}`);
+        const token = localStorage.getItem('authToken'); // Obtener el token
+        const response = await fetch(`/generar-reporte?tipo=${tipo}`, {
+            headers: {
+                'Authorization': `Bearer ${token}` // Agregar el token al encabezado
+            }
+        });
         const data = await response.json();
         if (response.ok) {
             datosReporte = data; // Guardar los datos para exportación
