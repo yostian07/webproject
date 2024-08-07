@@ -5,43 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Inventario</title>
   <link href="./output.css" rel="stylesheet">
-  <script>
-    async function fetchProtectedData(url) {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      return response.json();
-    }
-
-    fetchProtectedData('http://localhost:3000/inventario.html').then(data => {
-      console.log(data);
-    }).catch(error => {
-      console.error('Error:', error);
-    });
-  </script>
 </head>
 <body>
   <style>
-     .modal-hidden {
-        display: none;
+    .modal-hidden {
+      display: none;
     }
     .modal-visible {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .scrollable-table {
       max-height: 280px;
       overflow-y: auto;
     }
-   
-
-    
   </style>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </head>
@@ -58,7 +36,7 @@
   <div class="container mt-4 no-scrollbar bg-gray-300 mx-auto rounded-xl px-4 py-6" style="max-width: 1400px;">
     <!-- Datos de Productos -->
     <div class="mx-auto shadow-md bg-gray-200 rounded-xl p-4 mb-8" style="max-width: 1400px;">
-      <h2 class="mb-2 text-xl font-bold">Datos de productos</h2> 
+      <h2 class="mb-2 text-xl font-bold">Datos de productos</h2>
       <div class="flex flex-row items-center ml-4 mb-4">
         <div class="flex items-center space-x-4">
           <div class="relative w-96">
@@ -70,22 +48,20 @@
             <input type="search" id="buscar-producto" class="block w-full p-2 pl-10 text-sm text-gray-600 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar producto..." required />
           </div>
           <div>
-          <button class="transition duration-300 ease-in-out inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-white bg-gray-800 hover:bg-gray-400 h-9 rounded-md px-3" onclick="buscarProducto()">
-            Buscar
-          </button>
-          
-        </div>
+            <button class="transition duration-300 ease-in-out inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-white bg-gray-800 hover:bg-gray-400 h-9 rounded-md px-3" onclick="buscarProducto()">
+              Buscar
+            </button>
+          </div>
         </div>
         <div class="ml-auto">
           <select id="filtrar-categoria" class="bg-gray-50 mr-4 w-52 p-2 border dark:border-gray-700 rounded-lg" onchange="filtrarPorCategoria()">
             <option value="">Todas las categorías</option>
-           
           </select>
         </div>
       </div>
 
-      <div class="border shadow-sm  rounded-lg overflow-x-auto scrollable-table">
-        <table class=" scroll-smooth  w-full table-auto" id="productos-table">
+      <div class="border shadow-sm rounded-lg overflow-x-auto scrollable-table">
+        <table class="scroll-smooth w-full table-auto" id="productos-table">
           <thead>
             <tr class="bg-gray-300 sticky top-0 dark:bg-gray-400">
               <th class="px-4 py-2 text-left">Nombre</th>
@@ -142,17 +118,35 @@
       </div>
     </div>
 
-    <!-- Tabla de Registros de Salida -->
+    <!-- Tabla de Registros de Transacciones -->
     <div class="mx-auto bg-gray-200 shadow-md rounded-xl p-4" style="max-width: 1400px;">
-      <h2 class="mt-2 mb-4 ml-4 text-xl font-bold">Registros de salida</h2>
-      <div class="border  rounded-lg overflow-x-auto scrollable-table">
-        <table class="w-full table-auto " id="transacciones-table">
+      <div class="flex items-center mb-4">
+        <h2 class="mt-2 mb-4 text-xl font-bold">Registros de transacciones</h2>
+        <div class="flex ml-auto">
+          <input type="date" id="filtrar-fecha" class="mr-4 bg-gray-50 border border-gray-300 text-gray-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-36 p-2.5 dark:bg-gray-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+          <input type="text" id="filtrar-producto" class="mr-4 bg-gray-50 border border-gray-300 text-gray-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-48 p-2.5 dark:bg-gray-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Filtrar por producto">
+          <select id="filtrar-tipo" class="bg-gray-50 border border-gray-300 text-gray-600 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-36 p-2.5 dark:bg-gray-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option value="">Todos los tipos</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SALIDA">Salida</option>
+          </select>
+          <button class="transition duration-300 ease-in-out ml-4 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-white bg-gray-800 hover:bg-gray-400 h-9 rounded-md px-3" onclick="aplicarFiltros()">
+            Aplicar filtros
+          </button>
+          <button class="transition duration-300 ease-in-out ml-4 inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-white bg-gray-800 hover:bg-gray-400 h-9 rounded-md px-3" onclick="limpiarFiltros()">
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+      <div class="border rounded-lg overflow-x-auto scrollable-table">
+        <table class="w-full table-auto" id="transacciones-table">
           <thead>
             <tr class="bg-gray-300 sticky top-0 dark:bg-gray-400">
               <th class="px-4 py-2 text-left">Fecha</th>
               <th class="px-4 py-2 text-left">Producto</th>
               <th class="px-4 py-2 text-left">Cantidad</th>
               <th class="px-4 py-2 text-left">Motivo</th>
+              <th class="px-4 py-2 text-left">Tipo</th>
             </tr>
           </thead>
           <tbody>

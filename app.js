@@ -1044,25 +1044,55 @@ app.get('/api/productos-mas-vendidos', async (req, res) => {
 
 
 
-
-
-
 app.get('/transacciones', async (req, res) => {
   try {
-    const query = `
-      SELECT t.TRANSACCION_ID, t.FECHA, p.NOMBRE AS PRODUCTO, t.CANTIDAD, t.MOTIVO
+    const { fecha, producto, tipo } = req.query;
+
+    let query = `
+      SELECT t.TRANSACCION_ID, t.FECHA, p.NOMBRE AS PRODUCTO, t.CANTIDAD, t.MOTIVO, t.TIPO
       FROM TRANSACCIONES t
       JOIN PRODUCTOS p ON t.PRODUCTO_ID = p.PRODUCTO_ID
-      WHERE t.TIPO = 'SALIDA'
     `;
-    const result = await executeQuery(query, {}, {}, true);  // true para obtener resultados como objetos
+
+    // Construir condiciones basadas en los filtros proporcionados
+    const conditions = [];
+    const values = [];
+
+    if (fecha) {
+      conditions.push(`t.FECHA = TO_DATE(:fecha, 'YYYY-MM-DD')`);
+      values.push({ name: 'fecha', val: fecha });
+    }
+    if (producto) {
+      conditions.push(`LOWER(p.NOMBRE) LIKE :producto`);
+      values.push({ name: 'producto', val: `%${producto.toLowerCase()}%` });
+    }
+    if (tipo) {
+      conditions.push(`t.TIPO = :tipo`);
+      values.push({ name: 'tipo', val: tipo });
+    }
+
+    // Agregar las condiciones al query si hay alguna
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    // Agregar la ordenación al query
+    query += ' ORDER BY t.FECHA DESC';
+
+    const binds = {};
+    values.forEach((value, index) => {
+      binds[value.name] = value.val;
+    });
+
+    const result = await executeQuery(query, binds, {}, true);  // Pasar valores como segundo parámetro
     if (result.rows.length > 0) {
       res.json(result.rows.map(transaccion => ({
         TRANSACCION_ID: transaccion.TRANSACCION_ID,
         FECHA: transaccion.FECHA ? transaccion.FECHA.toISOString().split('T')[0] : 'Fecha no disponible',
         PRODUCTO: transaccion.PRODUCTO || 'Producto no disponible',
         CANTIDAD: transaccion.CANTIDAD || 'Cantidad no disponible',
-        MOTIVO: transaccion.MOTIVO || 'Motivo no disponible'
+        MOTIVO: transaccion.MOTIVO || 'Motivo no disponible',
+        TIPO: transaccion.TIPO || 'Tipo no disponible'
       })));
     } else {
       res.status(404).send('No se encontraron transacciones');
@@ -1075,11 +1105,10 @@ app.get('/transacciones', async (req, res) => {
 
 
 
-
-app.post('/api/proveedores', async (req, res) => {
+ // Endpoint para registrar proveedores y transacciones
+ app.post('/api/proveedores', async (req, res) => {
   const { nombre, numero_ruc, telefono, correo_electronico, tipo_proveedor, direccion, productos } = req.body;
 
-  // Asegúrate de que productos sea un array
   const productosArray = Array.isArray(productos) ? productos : productos.split(',').map(p => p.trim());
   const productosStr = productosArray.join(',');
 
@@ -1089,8 +1118,13 @@ app.post('/api/proveedores', async (req, res) => {
     END;
   `;
 
+  let connection;
+
   try {
-    await executeQuery(insertProveedorQuery, {
+    connection = await oracledb.getConnection(dbConfig);
+
+    // Insertar proveedor
+    await connection.execute(insertProveedorQuery, {
       nombre,
       numero_ruc,
       telefono,
@@ -1100,10 +1134,68 @@ app.post('/api/proveedores', async (req, res) => {
       productos: productosStr
     });
 
-    res.status(201).json({ message: 'Proveedor agregado con éxito' });
+    // Registrar entrada en la tabla de transacciones
+    for (const producto of productosArray) {
+      const productResult = await connection.execute(
+        `SELECT PRODUCTO_ID FROM PRODUCTOS WHERE NOMBRE = :producto`,
+        { producto },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      if (productResult.rows.length > 0) {
+        const producto_id = productResult.rows[0].PRODUCTO_ID;
+        await connection.execute(
+          `INSERT INTO TRANSACCIONES (TRANSACCION_ID, PRODUCTO_ID, CANTIDAD, MOTIVO, TIPO, FECHA)
+           VALUES (SEQ_TRANSACCION_ID.NEXTVAL, :producto_id, 1, 'Entrada por proveedor', 'ENTRADA', SYSDATE)`,
+          { producto_id }
+        );
+      }
+    }
+
+    await connection.commit();
+    res.status(201).json({ message: 'Proveedor agregado con éxito y transacciones registradas' });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (err) {
+        console.error('Error al hacer rollback:', err);
+      }
+    }
     console.error('Error adding proveedor:', error);
     res.status(500).json({ message: 'Error adding proveedor' });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error cerrando la conexión:', err);
+      }
+    }
+  }
+});
+
+// Endpoint para registrar transacciones
+app.post('/api/transacciones', async (req, res) => {
+  const { producto_id, cantidad, motivo, tipo } = req.body;
+
+  const insertTransaccionQuery = `
+    INSERT INTO TRANSACCIONES (TRANSACCION_ID, PRODUCTO_ID, CANTIDAD, MOTIVO, TIPO, FECHA)
+    VALUES (SEQ_TRANSACCION_ID.NEXTVAL, :producto_id, :cantidad, :motivo, :tipo, SYSDATE)
+  `;
+
+  try {
+    await executeQuery(insertTransaccionQuery, {
+      producto_id,
+      cantidad,
+      motivo,
+      tipo
+    });
+
+    res.status(201).json({ message: 'Transacción registrada con éxito' });
+  } catch (error) {
+    console.error('Error adding transaccion:', error);
+    res.status(500).json({ message: 'Error registrando la transacción' });
   }
 });
 
@@ -1287,8 +1379,11 @@ app.post('/register-shipment', async (req, res) => {
     return res.status(400).send({ error: "Todos los campos son obligatorios" });
   }
 
-  const connection = await oracledb.getConnection(dbConfig);
+  let connection;
+
   try {
+    connection = await oracledb.getConnection(dbConfig);
+
     // Verificar si el cliente existe
     const clienteResult = await connection.execute(
       `SELECT * FROM CLIENTES WHERE DOCUMENTO_IDENTIDAD = :documento`,
@@ -1306,12 +1401,8 @@ app.post('/register-shipment', async (req, res) => {
           telefono: cliente_telefono,
           correo: cliente_correo,
           direccion: cliente_direccion
-        },
-        { autoCommit: false }
+        }
       );
-      console.log('Cliente registrado:', cliente_nombre);
-    } else {
-      console.log('Cliente ya existe:', cliente_nombre);
     }
 
     const result = await connection.execute(
@@ -1327,12 +1418,10 @@ app.post('/register-shipment', async (req, res) => {
         costo_envio,
         estado_envio,
         envio_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-      },
-      { autoCommit: false }
+      }
     );
 
     const envioId = result.outBinds.envio_id[0];
-    console.log('Envío registrado con ID:', envioId);
 
     let totalProductos = 0;
 
@@ -1348,6 +1437,11 @@ app.post('/register-shipment', async (req, res) => {
       }
 
       const precio = productResult.rows[0][0];
+      if (!precio) {
+        console.error('El precio del producto es nulo:', producto.producto_id);
+        continue;
+      }
+
       totalProductos += precio * producto.cantidad;
 
       await connection.execute(
@@ -1358,28 +1452,32 @@ app.post('/register-shipment', async (req, res) => {
           producto_id: producto.producto_id,
           cantidad: producto.cantidad,
           precio: precio
-        },
-        { autoCommit: false }
+        }
       );
-      console.log('Producto agregado a la venta:', producto.producto_id);
 
       await connection.execute(
         `UPDATE PRODUCTOS SET STOCK = STOCK - :cantidad WHERE PRODUCTO_ID = :producto_id`,
         {
           cantidad: producto.cantidad,
           producto_id: producto.producto_id
-        },
-        { autoCommit: false }
+        }
       );
-      console.log('Stock actualizado para producto:', producto.producto_id);
+
+      // Registrar la salida en la tabla de transacciones
+      await connection.execute(
+        `INSERT INTO TRANSACCIONES (TRANSACCION_ID, PRODUCTO_ID, CANTIDAD, MOTIVO, TIPO, FECHA)
+         VALUES (SEQ_TRANSACCION_ID.NEXTVAL, :producto_id, :cantidad, 'Salida por envío', 'SALIDA', SYSDATE)`,
+        {
+          producto_id: producto.producto_id,
+          cantidad: producto.cantidad
+        }
+      );
     }
 
     const totalEnvio = totalProductos + costo_envio;
 
     await connection.commit();
-    console.log('Transacción commit realizada');
 
-    // Enviar correo electrónico al cliente
     const mailOptions = {
       from: 'yostiancortes123@gmail.com',
       to: cliente_correo,
@@ -1433,13 +1531,26 @@ app.post('/register-shipment', async (req, res) => {
 
     res.status(200).send({ message: "Envío registrado y correo enviado exitosamente" });
   } catch (error) {
-    await connection.rollback();
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (err) {
+        console.error('Error al hacer rollback:', err);
+      }
+    }
     console.error('Error registrando el envío:', error);
     res.status(500).send({ error: "Error registrando el envío" });
   } finally {
-    await connection.close();
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error cerrando la conexión:', err);
+      }
+    }
   }
 });
+
 
 
 
