@@ -106,11 +106,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const formData = new FormData(formCliente);
             const data = {};
             formData.forEach((value, key) => { data[key] = value; });
-
+        
             const clienteId = document.getElementById('cliente_id').value;
             const url = clienteId ? `${apiBaseUrl}/clientes/${clienteId}` : `${apiBaseUrl}/clientes`;
             const method = clienteId ? 'PUT' : 'POST';
-
+        
             try {
                 const response = await fetch(url, {
                     method: method,
@@ -120,14 +120,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                     },
                     body: JSON.stringify(data)
                 });
+        
                 const result = await response.json();
-                console.log('Cliente procesado:', result);
-                fetchClientes();
-                formCliente.reset();
-                agregarBtn.style.display = 'inline-block';
-                guardarBtn.style.display = 'none';
+        
+                if (response.status === 400 && result.message) {
+                    Swal.fire('Error', result.message, 'error');
+                } else {
+                    console.log('Cliente procesado:', result);
+                    fetchClientes();
+                    formCliente.reset();
+                    agregarBtn.style.display = 'inline-block';
+                    guardarBtn.style.display = 'none';
+                }
             } catch (error) {
                 console.error('Error al procesar cliente:', error);
+                Swal.fire('Error', 'Hubo un problema al procesar el cliente.', 'error');
             }
         }
 

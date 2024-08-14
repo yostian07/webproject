@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/proveedores.html', {
+        const response = await fetch('http://localhost:3000/gestion-proveedores.html', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`

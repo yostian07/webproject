@@ -23,7 +23,6 @@ const os = require('os');
 
 
 
-
 const app = express();
 const port = process.env.PORT || 3000;
 const secret = process.env.JWT_SECRET || 'Mjk4OWJlNzctYWVkYi00ZTk5LTgzMTgtNzM0MGI3ZmQ5MzBl';
@@ -179,6 +178,18 @@ app.post('/clientes', async (req, res) => {
   const { nombre, documento_identidad, telefono, correo_electronico, direccion, estado } = req.body;
   try {
     const connection = await oracledb.getConnection(dbConfig);
+
+    // Verificar si la cédula ya está registrada
+    const checkSql = 'SELECT COUNT(*) AS count FROM clientes WHERE documento_identidad = :documento_identidad';
+    const checkResult = await connection.execute(checkSql, [documento_identidad]);
+    const count = checkResult.rows[0][0];
+
+    if (count > 0) {
+      await connection.close();
+      return res.status(400).json({ success: false, message: 'El documento de identidad ya está registrado.' });
+    }
+    
+    // Insertar el nuevo cliente
     const sql = `
       INSERT INTO clientes (cliente_id, nombre, documento_identidad, telefono, correo_electronico, direccion, estado)
       VALUES (cliente_id_seq.NEXTVAL, :nombre, :documento_identidad, :telefono, :correo_electronico, :direccion, :estado)
@@ -193,6 +204,7 @@ app.post('/clientes', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error al agregar el cliente: ' + err.message });
   }
 });
+
 
 // Endpoint para obtener todos los clientes o buscar clientes
 app.get('/clientes', async (req, res) => {
