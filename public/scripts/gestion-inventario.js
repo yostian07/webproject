@@ -50,19 +50,23 @@ document.addEventListener("DOMContentLoaded", async function() {
   async function fetchProductos(search = '', categoria = '') {
     try {
       const response = await fetch(`/productos?search=${search}&categoria=${categoria}`);
-      if (!response.ok) throw new Error('Error al obtener productos');
+      
+      // Si no se encontró ningún producto, enviamos un mensaje específico
+      if (!response.ok) throw new Error('Producto no encontrado');
+      
       const data = await response.json();
-  
+
+      // Si la respuesta es válida pero no hay productos
       if (!data || data.length === 0) {
         Swal.fire({
-          title: 'Error',
-          text: 'No se encontraron productos',
-          icon: 'error',
+          title: 'Producto no encontrado',
+          text: 'No se encontraron productos que coincidan con los criterios de búsqueda.',
+          icon: 'warning',
           confirmButtonText: 'Ok'
         });
         return;
       }
-  
+
       const tableBody = document.querySelector('#productos-table tbody');
       tableBody.innerHTML = '';
       data.forEach((producto, index) => {
@@ -92,50 +96,82 @@ document.addEventListener("DOMContentLoaded", async function() {
       console.error('Error fetching productos:', error);
       Swal.fire({
         title: 'Error',
-        text: 'Hubo un problema al cargar los productos.',
-        icon: 'error',
+        text: error.message === 'Producto no encontrado' 
+              ? 'No se encontraron productos que coincidan con los criterios de búsqueda.'
+              : 'Hubo un problema al cargar los productos.',
+        icon: error.message === 'Producto no encontrado' ? 'warning' : 'error',
         confirmButtonText: 'Ok'
       });
     }
-  }
+}
+
   
-  async function fetchTransacciones(filters = {}) {
-    try {
+
+
+async function fetchTransacciones(filters = {}) {
+  try {
       const query = new URLSearchParams(filters).toString();
       const response = await fetch(`/transacciones?${query}`);
+      
+      // Verificar si la respuesta es un 404, lo que significa que no se encontraron transacciones
+      if (response.status === 404) {
+          Swal.fire({
+              title: 'Sin resultados',
+              text: 'No se encontraron transacciones con los filtros aplicados.',
+              icon: 'info',
+              confirmButtonText: 'Ok'
+          });
+          return;
+      }
+
       if (!response.ok) throw new Error('Error al obtener transacciones');
+      
       const data = await response.json();
-  
+      
+      // Si no se encontraron transacciones, mostrar un mensaje específico
+      if (!data || data.length === 0) {
+          Swal.fire({
+              title: 'Sin resultados',
+              text: 'No se encontraron transacciones con los filtros aplicados.',
+              icon: 'info',
+              confirmButtonText: 'Ok'
+          });
+          return;
+      }
+
+      // Ordenar y mostrar transacciones
       data.sort((a, b) => new Date(b.FECHA) - new Date(a.FECHA));
-  
+
       const tableBody = document.querySelector('#transacciones-table tbody');
       tableBody.innerHTML = '';
       data.forEach((transaccion, index) => {
-        const row = document.createElement('tr');
-        row.classList.add('border-b', 'dark:border-gray-400', 'transition-opacity', 'duration-500', 'opacity-0');
-        row.innerHTML = `
-          <td class="px-4 py-2">${transaccion.FECHA || 'Fecha no disponible'}</td>
-          <td class="px-4 py-2">${transaccion.PRODUCTO || 'Producto no disponible'}</td>
-          <td class="px-4 py-2">${transaccion.CANTIDAD || 'Cantidad no disponible'}</td>
-          <td class="px-4 py-2">${transaccion.MOTIVO || 'Motivo no disponible'}</td>
-          <td class="px-4 py-2">${transaccion.TIPO || 'Tipo no disponible'}</td>
-        `;
-        tableBody.appendChild(row);
-        setTimeout(() => {
-          row.classList.remove('opacity-0');
-          row.classList.add('opacity-100');
-        }, index * 100);
+          const row = document.createElement('tr');
+          row.classList.add('border-b', 'dark:border-gray-400', 'transition-opacity', 'duration-500', 'opacity-0');
+          row.innerHTML = `
+              <td class="px-4 py-2">${transaccion.FECHA || 'Fecha no disponible'}</td>
+              <td class="px-4 py-2">${transaccion.PRODUCTO || 'Producto no disponible'}</td>
+              <td class="px-4 py-2">${transaccion.CANTIDAD || 'Cantidad no disponible'}</td>
+              <td class="px-4 py-2">${transaccion.MOTIVO || 'Motivo no disponible'}</td>
+              <td class="px-4 py-2">${transaccion.TIPO || 'Tipo no disponible'}</td>
+          `;
+          tableBody.appendChild(row);
+          setTimeout(() => {
+              row.classList.remove('opacity-0');
+              row.classList.add('opacity-100');
+          }, index * 100);
       });
-    } catch (error) {
+  } catch (error) {
       console.error('Error fetching transacciones:', error);
       Swal.fire({
-        title: 'Error',
-        text: 'Hubo un problema al cargar las transacciones.',
-        icon: 'error',
-        confirmButtonText: 'Ok'
+          title: 'Error',
+          text: 'Hubo un problema al cargar las transacciones.',
+          icon: 'error',
+          confirmButtonText: 'Ok'
       });
-    }
   }
+}
+
+
   
   function aplicarFiltros() {
     const fecha = document.getElementById('filtrar-fecha').value || null;

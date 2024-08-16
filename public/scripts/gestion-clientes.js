@@ -131,12 +131,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                     formCliente.reset();
                     agregarBtn.style.display = 'inline-block';
                     guardarBtn.style.display = 'none';
+        
+                    // Mostrar alerta de éxito con SweetAlert
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: clienteId ? 'Cliente actualizado correctamente' : 'Cliente agregado correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'Ok'
+                    });
                 }
             } catch (error) {
                 console.error('Error al procesar cliente:', error);
                 Swal.fire('Error', 'Hubo un problema al procesar el cliente.', 'error');
             }
         }
+        
 
         async function fetchClientes() {
             try {
@@ -174,32 +183,44 @@ document.addEventListener('DOMContentLoaded', async function() {
             const tbody = document.querySelector('#clientes-table tbody');
             if (tbody) {
                 tbody.innerHTML = '';
-                clientes.forEach((cliente, index) => {
-                    let fila = document.createElement('tr');
-                    fila.classList.add('transition-opacity', 'duration-500', 'opacity-0');
-                    fila.innerHTML = `
-                        <td class="border-b p-4">${cliente.id}</td>
-                        <td class="border-b p-4">${cliente.nombre}</td>
-                        <td class="border-b p-4">${cliente.documento_identidad}</td>
-                        <td class="border-b p-4">${cliente.telefono}</td>
-                        <td class="border-b p-4">${cliente.correo_electronico}</td>
-                        <td class="border-b p-4">${cliente.direccion}</td>
-                        <td class="border-b p-4">${cliente.estado}</td>
-                        <td class="border-b p-4">
-                            <button type="button" class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="editarCliente(${cliente.id})">Editar</button>
-                            <button type="button" class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="eliminarCliente(${cliente.id})">Eliminar</button>
+                if (clientes.length === 0) {
+                    // Si no hay clientes, muestra el mensaje en una fila con colspan para que ocupe todo el ancho
+                    const noDataMessage = document.createElement('tr');
+                    noDataMessage.innerHTML = `
+                        <td colspan="8" class="text-center p-4 text-gray-500">
+                            No existen clientes
                         </td>
                     `;
-                    tbody.appendChild(fila);
-                    setTimeout(() => {
-                        fila.classList.remove('opacity-0');
-                        fila.classList.add('opacity-100');
-                    }, index * 100);
-                });
+                    tbody.appendChild(noDataMessage);
+                } else {
+                    clientes.forEach((cliente, index) => {
+                        let fila = document.createElement('tr');
+                        fila.classList.add('transition-opacity', 'duration-500', 'opacity-0');
+                        fila.innerHTML = `
+                            <td class="border-b p-4">${cliente.id}</td>
+                            <td class="border-b p-4">${cliente.nombre}</td>
+                            <td class="border-b p-4">${cliente.documento_identidad}</td>
+                            <td class="border-b p-4">${cliente.telefono}</td>
+                            <td class="border-b p-4">${cliente.correo_electronico}</td>
+                            <td class="border-b p-4">${cliente.direccion}</td>
+                            <td class="border-b p-4">${cliente.estado}</td>
+                            <td class="border-b p-4">
+                                <button type="button" class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="editarCliente(${cliente.id})">Editar</button>
+                                <button type="button" class="transition duration-300 ease-in-out text-white bg-gray-800 hover:bg-gray-400 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-1 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700" onclick="eliminarCliente(${cliente.id})">Eliminar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(fila);
+                        setTimeout(() => {
+                            fila.classList.remove('opacity-0');
+                            fila.classList.add('opacity-100');
+                        }, index * 100);
+                    });
+                }
             } else {
                 console.error('Tbody no encontrado.');
             }
         }
+        
 
         window.eliminarCliente = async function(clienteId) {
             try {

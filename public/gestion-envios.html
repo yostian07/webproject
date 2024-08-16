@@ -104,13 +104,23 @@
             <table class="min-w-full bg-gray-100 shadow-md rounded">
               <thead class="text-white bg-gray-600">
                 <tr class="bg-gray-300 sticky top-0">
-                  <th class="py-2 px-4">ID de envío</th>
-                  <th class="py-2 px-4">Cliente</th>
-                  <th class="py-2 px-4">Acciones</th>
+                  <th class="py-2 px-4 text-left">ID de envío</th>
+                  <th class="py-2 px-4 text-left">Cliente</th>
+                  <th class="py-2 px-4 text-left">Acciones</th>
                 </tr>
               </thead>
-              <tbody id="pendingShipmentsTableBody" class="text-gray-700">
+              <tbody id="pendingShipmentsTableBody" class="text-gray-700 divide-y divide-gray-300">
                 <!-- Los datos aparecen dinámicamente -->
+                <tr class="hover:bg-gray-300">
+                  <td class="py-2 px-4">204</td>
+                  <td class="py-2 px-4">Marco Ramírez</td>
+                  <td class="py-2 px-4 flex space-x-2">
+                    <button class=" text-white font-bold py-1 px-2 rounded">Ver</button>
+                    <button class=" text-white font-bold py-1 px-2 rounded">Editar</button>
+                    <button class=" text-white font-bold py-1 px-2 rounded">Hecho</button>
+                  </td>
+                </tr>
+                <!-- Repite este bloque para cada fila -->
               </tbody>
             </table>
           </div>
@@ -123,13 +133,21 @@
             <table class="min-w-full bg-gray-100 shadow-md rounded">
               <thead class="text-white bg-gray-600">
                 <tr class="bg-gray-300 sticky top-0">
-                  <th class="py-2 px-4">ID de envío</th>
-                  <th class="py-2 px-4">Cliente</th>
-                  <th class="py-2 px-4">Acciones</th>
+                  <th class="py-2 px-4 text-left">ID de envío</th>
+                  <th class="py-2 px-4 text-left">Cliente</th>
+                  <th class="py-2 px-4 text-left">Acciones</th>
                 </tr>
               </thead>
-              <tbody id="completedShipmentsTableBody" class="text-gray-700">
+              <tbody id="completedShipmentsTableBody" class="text-gray-700 divide-y divide-gray-300">
                 <!-- Los datos aparecen dinámicamente -->
+                <tr class="hover:bg-gray-300">
+                  <td class="py-2 px-4">161</td>
+                  <td class="py-2 px-4">Mario Pérez</td>
+                  <td class="py-2 px-4">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Ver</button>
+                  </td>
+                </tr>
+                <!-- Repite este bloque para cada fila -->
               </tbody>
             </table>
           </div>

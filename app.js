@@ -173,9 +173,15 @@ if (cluster.isMaster) {
 
 
 
+// Función para capitalizar la primera letra
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
+
 // Endpoint para agregar un nuevo cliente
 app.post('/clientes', async (req, res) => {
-  const { nombre, documento_identidad, telefono, correo_electronico, direccion, estado } = req.body;
+  let { nombre, documento_identidad, telefono, correo_electronico, direccion, estado } = req.body;
+
   try {
     const connection = await oracledb.getConnection(dbConfig);
 
@@ -188,7 +194,11 @@ app.post('/clientes', async (req, res) => {
       await connection.close();
       return res.status(400).json({ success: false, message: 'El documento de identidad ya está registrado.' });
     }
-    
+
+    // Capitalizar los campos deseados
+    nombre = capitalizeFirstLetter(nombre);
+   
+
     // Insertar el nuevo cliente
     const sql = `
       INSERT INTO clientes (cliente_id, nombre, documento_identidad, telefono, correo_electronico, direccion, estado)
@@ -204,6 +214,7 @@ app.post('/clientes', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error al agregar el cliente: ' + err.message });
   }
 });
+
 
 
 // Endpoint para obtener todos los clientes o buscar clientes
@@ -448,10 +459,19 @@ app.get('/categorias', async (req, res) => {
 
 
 
+// Función para capitalizar la primera letra
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
+
 // Endpoint para agregar un nuevo producto
 app.post('/productos', async (req, res) => {
-  const { nombre, descripcion, precio, stock, categoria, stock_minimo } = req.body;
+  let { nombre, descripcion, precio, stock, categoria, stock_minimo } = req.body;
+
   try {
+    // Capitalizar el nombre del producto
+    nombre = capitalizeFirstLetter(nombre);
+    categoria = capitalizeFirstLetter
     const connection = await oracledb.getConnection(dbConfig);
     const sql = `
       INSERT INTO PRODUCTOS (NOMBRE, DESCRIPCION, PRECIO, STOCK, CATEGORIA, STOCK_MINIMO)
@@ -466,6 +486,7 @@ app.post('/productos', async (req, res) => {
     res.status(500).json({ success: false, message: 'Error al agregar producto' });
   }
 });
+
 
 
 // Endpoint para actualizar un producto
@@ -759,7 +780,7 @@ app.post('/register-sale', async (req, res) => {
     y -= fontSize + 4;
 
     products.forEach(product => {
-      const productInfo = `- ${product.description}: ${product.quantity} x ${product.price} = ${product.quantity * product.price}`;
+      const productInfo = `-  ${product.description}: ${product.quantity} x ${product.price} = ${product.quantity * product.price}`;
       page.drawText(productInfo, {
         x: margin,
         y,
@@ -824,6 +845,7 @@ app.post('/register-sale', async (req, res) => {
           <table style="width: 100%; border-collapse: collapse;">
             ${products.map(product => `
               <tr>
+                
                 <td style="padding: 8px; border: 1px solid #ddd;">${product.description}</td>
                 <td style="padding: 8px; border: 1px solid #ddd;">${product.quantity} x ${product.price}</td>
                 <td style="padding: 8px; border: 1px solid #ddd;">${product.quantity * product.price}</td>
@@ -856,8 +878,7 @@ app.post('/register-sale', async (req, res) => {
       }
     });
 
-    await actualizarClasificacionCliente(clientId);
-
+    await actualizarClasificacionCliente(clientId); // Llamar después de registrar la venta
     const fileUrl = `/public/comprobantes/comprobante_${saleId}.pdf`;
     res.status(200).send({ message: 'Venta registrada exitosamente', fileUrl });
   } catch (error) {
@@ -868,24 +889,7 @@ app.post('/register-sale', async (req, res) => {
 
 
 
-app.post('/clientes/actualizar-clasificaciones-inactividad', async (req, res) => {
-  try {
-    await actualizarClasificacionesPorInactividad();
-    res.status(200).send({ message: 'Clasificaciones actualizadas' });
-  } catch (error) {
-    console.error('Error al actualizar clasificaciones por inactividad:', error);
-    res.status(500).send({ message: 'Error al actualizar clasificaciones' });
-  }
-});
 
-cron.schedule('0 0 * * *', async () => {
-  try {
-    await actualizarClasificacionesPorInactividad();
-    console.log('Clasificaciones actualizadas por inactividad');
-  } catch (error) {
-    console.error('Error al actualizar clasificaciones por inactividad:', error);
-  }
-});
 
 
 
